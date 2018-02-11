@@ -57,13 +57,10 @@ if a ? is encountered
 '''
 def digitize(column):
     tmin, tmax = get_minmax(column)
-
     for i, entry in enumerate(column):
         if entry == '?':
             column[i] = random.uniform(float(tmin),float(tmax))
-
     column = [float(i) for i in column]
-
     bins = np.linspace(float(tmin), float(tmax), TOTAL_BINS)
     x = np.array(column)
     inds = np.digitize(x,bins)
@@ -105,7 +102,8 @@ def convert_house_data(data):
 
 '''
 This method converts the class/result column into discrete
-values
+values, where one is the value to convert to 1 and zero is
+the value to convert to zero.
 '''
 def convert_column(data_list, one, zero):
     for i in range(len(data_list)):
