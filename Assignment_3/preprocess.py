@@ -1,50 +1,71 @@
 import re
 import copy
 import random
-
-'''
-Transpose the datalist from rows to columns or
-columns to rows
-'''
-def transpose(data_list):
-    return list(map(list,zip(*data_list)))
+import utilities
 
 '''
 This method reads a file line by line and discards
 the /n character
 '''
-def read_file(filename,split=None):
+def read_file(filename,split=None,rem_list=None,class_idx=0):
     temp = []
     with open(filename) as file:
         for line in file:
             if split != None:
-                temp.append(line.strip().split(split))
+                temp_line = line.strip().split(split)
             else:
                 line = re.sub(' +',' ',line.strip())
-                temp.append(line.split(" "))
+                temp_line = line.split(" ")
+            if rem_list == None:
+                temp.append(temp_line)
+            else:
+                if not temp_line[class_idx] in rem_list:
+                    temp.append(temp_line)
     return temp
 
+'''
+This method takes the class list and it's size
+based on the partition length and creates abs
+list of values
+'''
+def build_partition(class_list, class_size):
+    temp = []
+    pop_counter = 0
+    while pop_counter < class_size and class_list:
+        val = class_list.pop(0)
+        temp.append(val)
+        pop_counter += 1
+    return temp
+
+'''
+This method creates a partition dictionary based
+on the dataset
+'''
 def create_partitions(total_parts, class_index, data):
     class_dict = {}
     column_length = len(data)
     partition_length = int(round(column_length/total_parts,0))
     # Swap to column representation
-    data = transpose(data)
+    data = utilities.transpose(data)
     # Create keys for the dictionary
     for entry in data[class_index]:
         class_dict[entry] = []
     class_sizes = copy.deepcopy(class_dict)
     # Swap back to row representation
-    data = transpose(data)
+    data = utilities.transpose(data)
     # Iterate through the data set and add the entries
     # to the class dictionary
     for row in range(len(data)):
         class_dict[data[row][class_index]].append(row)
     # Calculte the percentages for each class and shuffle thhe lists
     for key in class_dict:
-        class_sizes[key] = len(class_dict[key])/column_length
-        random.shuffle(class_dict[key])
+        temp_pct = len(class_dict[key])/column_length
+        class_sizes[key] = round(partition_length * temp_pct,0)
+        #random.shuffle(class_dict[key])
     part_dict = {}
+    # Build the partitions
     for partition in range(total_parts):
-        
-    print(class_sizes.values(), partition_length, column_length)
+        part_dict[partition] = []
+        for key in class_dict:
+            part_dict[partition] += build_partition(class_dict[key],class_sizes[key])
+    return part_dict
