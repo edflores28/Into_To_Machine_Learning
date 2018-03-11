@@ -4,6 +4,19 @@ import random
 import utilities
 
 '''
+This swaps the two specified columns, this assumes that
+col1 is the id number which is also removed.
+'''
+def swap_columns(col1, col2, data, rem='True'):
+    temp = []
+    for entry in data:
+        entry[col1], entry[col2] = entry[col2], entry[col1]
+        if rem == 'True':
+            entry = entry[:-1]
+        temp.append(entry)
+    return temp
+
+'''
 This method reads a file line by line and discards
 the /n character
 '''
@@ -68,4 +81,14 @@ def create_partitions(total_parts, class_index, data):
         part_dict[partition] = []
         for key in class_dict:
             part_dict[partition] += build_partition(class_dict[key],class_sizes[key])
+    return part_dict
+
+def create_regress_partitions(total_parts, data):
+    column_length = len(data)
+    partition_length = int(round(column_length/total_parts,0))
+    index_list = [i for i in range(len(data))]
+    part_dict = {}
+    random.shuffle(index_list)
+    for i in range(total_parts):
+        part_dict[i] = build_partition(index_list,partition_length)
     return part_dict
