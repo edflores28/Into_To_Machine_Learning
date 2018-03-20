@@ -1,28 +1,23 @@
 import utilities
+from collections import OrderedDict
 
 
 class ID3:
     def __init__(self, dataset, is_continuous):
         self.dataset = dataset
         self.is_continuous = is_continuous
-
-    def _calculate_entropy(self, class_values, total):
+        self.total_features = len(dataset[0]) - 1
+    def __calculate_entropy(self, class_values, total):
         entropy = 0.0
         for key in class_values:
-            temp = utilities.entropy(class_values[key]/total)
-            print(temp)
-            entropy += temp
+            entropy += utilities.entropy(class_values[key]/total)
         print("final entropy", entropy)
         return entropy
 
-    def _categorical_gain(self, feature_index, class_index, data_entropy):
-        data = utilities.transpose(self.dataset)
-        features = data[feature_index]
-        classification = data[class_index]
-        total_features = len(features)
+    def __get_feature_classes(self, features, classification):
         feature_values = {}
         # Iterate through each feature entry
-        for entry in range(total_features):
+        for entry in range(len(features)):
             # Create a dictionary and set a counter if the
             # entry is not in the main dictionary
             if features[entry] not in feature_values:
@@ -37,33 +32,91 @@ class ID3:
                 feature_values[features[entry]][classification[entry]] += 1
             # Increment the counter
             feature_values[features[entry]]['count'] += 1
+        return feature_values
+
+    def __calculate_gain(self, feature_dict, total_features, data_entropy):
         # Create a dictionary that has the entropies for each feature
         entropies = {}
         # Iterate through each feature key
-        for feature_key in feature_values:
+        for feature_key in feature_dict:
             entropy = 0.0
-            count = feature_values[feature_key]['count']
+            count = feature_dict[feature_key]['count']
             # Iterate through each classification and calculate the entropy
             # for each key
-            for class_key in feature_values[feature_key]:
+            for class_key in feature_dict[feature_key]:
                 if class_key != 'count':
-                    entropy += utilities.entropy(feature_values[feature_key][class_key]/count)
+                    entropy += utilities.entropy(feature_dict[feature_key][class_key]/count)
             # Calculate the proportional entropy
             entropies[feature_key] = (count/total_features) * entropy
         # Convert each entropy value to a negative
         negatives = [-x for x in list(entropies.values())]
         # Caulculate the gain of the feature
-        print(data_entropy + sum(negatives))
+        return data_entropy + sum(negatives)
 
-    def _feature_entropy(self, feature_index, class_index):
+    def __categorical_gain(self, feature_index, data_entropy):
         data = utilities.transpose(self.dataset)
         features = data[feature_index]
-        classification = data[class_index]
+        total_features = len(features)
+        # Create a dictory
+        feature_values = self.__get_feature_classes(data[feature_index], data[-1])
+        # Calculate the Gain
+        return self.__calculate_gain(feature_values, total_features, data_entropy)
 
+    def __continuous_gain(self, feature_index, data_entropy):
+        data = utilities.transpose(self.dataset)
+        total_features = len(data[feature_index])
+        feature_class = list(zip(data[feature_index], data[-1]))
+        feature_class.sort(key=lambda tup: tup[0])
+        gains = []
+        right_vals = {'count': 0}
+        left_vals = {'count': 0}
+        # Iterate through the sorted feature set and
+        # build the right_vals dictionary
+        for entry in feature_class:
+            # Determine if the class is in the right_vals
+            # partition. If it is increment the occurences
+            # otherwise create the entry
+            if entry[1] not in right_vals:
+                right_vals[entry[1]] = 1
+            else:
+                right_vals[entry[1]] += 1
+            # Increment the counter
+            right_vals['count'] += 1
+        # Iterate through the sorted feature set and move
+        # the class of the entry to the left_vals dictionary,
+        # remove it from the right_vals dictionary, and compute
+        # the gain
+        for entry in feature_class:
+            # Move the class of the feature
+            if entry[1] not in left_vals:
+                left_vals[entry[1]] = 1
+            else:
+                left_vals[entry[1]] += 1
+            left_vals['count'] += 1
+            # Remove the class from right_vals and do
+            # some bookkeeping
+            right_vals[entry[1]] -= 1
+            right_vals['count'] -= 1
+            if right_vals[entry[1]] == 0:
+                del right_vals[entry[1]]
+            # Calculate the gain and add it to the gain list
+            temp = {0: left_vals, 1: right_vals}
+            gains.append(self.__calculate_gain(temp, total_features, data_entropy))
+        # Obtain the maximum gain and compute the threshold
+        max_gain = max(gains)
+        index = gains.index(max_gain)
+        threshold = (feature_class[index][0] + feature_class[index+1][0])/2.0
+        return max_gain, threshold
+
+    def __feature_entropy(self, feature_index, data_entropy):
+        threshold = None
+        gain = 0.0
         if self.is_continuous[feature_index]:
-            pass
+            gain, threshold = self.__continuous_gain(feature_index, data_entropy)
         else:
-            pass
+            gain = self.__categorical_gain(feature_index, data_entropy)
+        print(gain,threshold)
+        return gain, threshold
 
     def build_tree(self):
         class_values = {}
@@ -75,6 +128,8 @@ class ID3:
             else:
                 class_values[entry[-1]] += 1
         # Obtain the entropy over the whole data set
-        data_entropy = self._calculate_entropy(class_values, len(self.dataset))
+        data_entropy = self.__calculate_entropy(class_values, len(self.dataset))
         # Calculate the gain of each feature
-        self._categorical_gain(0, 8, data_entropy)
+        for feature in range(self.total_features):
+            print(feature)
+            self.__feature_entropy(feature, data_entropy)
