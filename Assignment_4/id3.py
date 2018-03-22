@@ -111,12 +111,32 @@ class ID3:
     def __feature_entropy(self, feature_index, data_entropy):
         threshold = None
         gain = 0.0
-        if self.is_continuous[feature_index]:
+        if isinstance(self.dataset[0][feature_index], float):
             gain, threshold = self.__continuous_gain(feature_index, data_entropy)
         else:
             gain = self.__categorical_gain(feature_index, data_entropy)
         print(gain,threshold)
         return gain, threshold
+
+    def __create_partitions(self, feature_index, gain, threshold):
+        partitions = {}
+        if threshold is None:
+            for entry in self.dataset:
+                if entry[feature_index] not in partitions:
+                    partitions[entry[feature_index]] = []
+                else:
+                    del entry[feature_index]
+                    partitions[entry[feature_index]].append(entry)
+        else:
+            partitions = {"left": [], "right": []}
+            for entry in self.dataset:
+                if entry[feature_index] <= threshold:
+                    del entry[feature_index]
+                    partitions["left"].append(entry)
+                else:
+                    del entry[feature_index]
+                    partitions["right"].append(entry)
+        return partitions
 
     def build_tree(self):
         class_values = {}
@@ -130,6 +150,11 @@ class ID3:
         # Obtain the entropy over the whole data set
         data_entropy = self.__calculate_entropy(class_values, len(self.dataset))
         # Calculate the gain of each feature
+        gains = []
         for feature in range(self.total_features):
-            print(feature)
-            self.__feature_entropy(feature, data_entropy)
+            gains.append(self.__feature_entropy(feature, data_entropy))
+        best_feature = gains.index(max(gains))
+        print("::::",gains[best_feature][0],gains[best_feature][1])
+        part = self.__create_partitions(best_feature,gains[best_feature][0],gains[best_feature][1])
+        for key in part:
+            print(key, part[key],"\n")
