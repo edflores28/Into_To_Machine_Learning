@@ -1,7 +1,7 @@
 import utilities
 import node
 
-MAX_REC = 3
+MAX_REC = 4
 
 
 class ID3:
@@ -124,12 +124,18 @@ class ID3:
     def __create_partitions(self, feature_index, gain, threshold):
         partitions = {}
         if threshold is None:
+            print("here")
+            print(self.dataset)
             for entry in self.dataset:
+                print(entry[feature_index])
+                print(entry)
                 if entry[feature_index] not in partitions:
                     partitions[entry[feature_index]] = []
-                else:
-                    del entry[feature_index]
-                    partitions[entry[feature_index]].append(entry)
+                #else:
+                #    partitions[entry[feature_index]].append(entry)
+                key = entry[feature_index]
+                del entry[feature_index]
+                partitions[key].append(entry)
         else:
             partitions = {"left": [], "right": []}
             for entry in self.dataset:
@@ -139,13 +145,11 @@ class ID3:
                 else:
                     del entry[feature_index]
                     partitions["right"].append(entry)
+        print(partitions)
         return partitions
 
     def build_tree(self):
         print(self.rec)
-        if self.rec == MAX_REC:
-            return
-
         # Create a Node
         root = node.Node()
         class_values = {}
@@ -156,23 +160,35 @@ class ID3:
                 class_values[entry[-1]] = 1
             else:
                 class_values[entry[-1]] += 1
+        # When the class_values is length of 1 then
+        # there is a good chance that the dataset just
+        # has 1 classification value.
+        if len(class_values) == 1:
+            for key in class_values:
+                root.set_label(key)
+                return root
         # Obtain the entropy over the whole data set
         data_entropy = self.__calculate_entropy(class_values, len(self.dataset))
+        #print("Class vals",class_values)
         # Calculate the gain of each feature
         gains = []
         for feature in range(self.total_features):
             gains.append(self.__feature_entropy(feature, data_entropy))
-        best_feature = gains.index(max(gains))
-
-        print(best_feature, self.feature_indices[best_feature])
-        print(self.feature_indices)
-        print(class_values)
-
+        print("gains", gains)
+        #print("TOTAL FEAT", self.total_features)
+        print(self.dataset)
+        best_feature = gains.index(max(gains, key=lambda x:x[0]))
+        print(best_feature)
+        print("best", best_feature, self.feature_indices[best_feature])
+        #print("feature index", self.feature_indices)
+        if self.rec == MAX_REC:
+            return
         root.set_feature_index(self.feature_indices.pop(best_feature))
-        print(gains)
-        print(gains[best_feature])
         part = self.__create_partitions(best_feature, gains[best_feature][0], gains[best_feature][1])
         count = self.rec + 1
-        print(part,"\n\n")
-        x = ID3(part["left"], self.feature_indices, count)
-        x.build_tree()
+        #print(part,"\n\n")
+        for key in part:
+            #print(key)
+            node_build = ID3(part[key], self.feature_indices, count)
+            root.set_branch(key, node_build.build_tree())
+        return root
