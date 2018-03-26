@@ -1,6 +1,14 @@
 import math
 
 
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 def entropy(p):
     return -p*math.log2(p)
 

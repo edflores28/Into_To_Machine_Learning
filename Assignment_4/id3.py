@@ -1,12 +1,16 @@
 import utilities
-from collections import OrderedDict
+import node
+
+MAX_REC = 3
 
 
 class ID3:
-    def __init__(self, dataset, is_continuous):
+    def __init__(self, dataset, feature_indices, rec):
         self.dataset = dataset
-        self.is_continuous = is_continuous
+        self.feature_indices = feature_indices
         self.total_features = len(dataset[0]) - 1
+        self.rec = rec
+
     def __calculate_entropy(self, class_values, total):
         entropy = 0.0
         for key in class_values:
@@ -115,7 +119,6 @@ class ID3:
             gain, threshold = self.__continuous_gain(feature_index, data_entropy)
         else:
             gain = self.__categorical_gain(feature_index, data_entropy)
-        print(gain,threshold)
         return gain, threshold
 
     def __create_partitions(self, feature_index, gain, threshold):
@@ -139,6 +142,12 @@ class ID3:
         return partitions
 
     def build_tree(self):
+        print(self.rec)
+        if self.rec == MAX_REC:
+            return
+
+        # Create a Node
+        root = node.Node()
         class_values = {}
         # Obtain all the classifications and their total
         # occurences.
@@ -154,7 +163,16 @@ class ID3:
         for feature in range(self.total_features):
             gains.append(self.__feature_entropy(feature, data_entropy))
         best_feature = gains.index(max(gains))
-        print("::::",gains[best_feature][0],gains[best_feature][1])
-        part = self.__create_partitions(best_feature,gains[best_feature][0],gains[best_feature][1])
-        for key in part:
-            print(key, part[key],"\n")
+
+        print(best_feature, self.feature_indices[best_feature])
+        print(self.feature_indices)
+        print(class_values)
+
+        root.set_feature_index(self.feature_indices.pop(best_feature))
+        print(gains)
+        print(gains[best_feature])
+        part = self.__create_partitions(best_feature, gains[best_feature][0], gains[best_feature][1])
+        count = self.rec + 1
+        print(part,"\n\n")
+        x = ID3(part["left"], self.feature_indices, count)
+        x.build_tree()
