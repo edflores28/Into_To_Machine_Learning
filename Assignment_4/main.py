@@ -1,7 +1,20 @@
 import preprocess
 import utilities
 import id3
+import node
 
+def print_node(root):
+    if root == None:
+        return
+    if root.get_leaf():
+        print("Leaf value:", root.get_label())
+        return
+    else:
+        print("Decision Node:", root.get_feature_index())
+        branches = root.get_branches()
+        for key in branches:
+            print(key)
+            print_node(branches[key])
 
 # Obtain the dataset
 dataset = preprocess.read_file(filename="./abalone.data", split=',')
@@ -13,7 +26,8 @@ for entry in range(len(dataset)):
         dataset[entry] = [float(s.replace(',', '')) for s in dataset[entry]]
 # Obtain the row representation
 dataset = utilities.transpose(dataset)
-dataset = dataset[:20]
+#dataset = dataset[:40]
 feature_indices = [i for i in range(len(dataset[0]))]
-x = id3.ID3(dataset, feature_indices, 0)
-x.build_tree()
+x = id3.ID3(dataset, feature_indices)
+y = x.build_tree()
+print_node(y)

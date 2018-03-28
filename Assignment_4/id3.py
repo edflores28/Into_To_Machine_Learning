@@ -1,21 +1,19 @@
 import utilities
 import node
-
-MAX_REC = 4
+import copy
+import math
 
 
 class ID3:
-    def __init__(self, dataset, feature_indices, rec):
+    def __init__(self, dataset, feature_indices):
         self.dataset = dataset
         self.feature_indices = feature_indices
         self.total_features = len(dataset[0]) - 1
-        self.rec = rec
 
     def __calculate_entropy(self, class_values, total):
         entropy = 0.0
         for key in class_values:
             entropy += utilities.entropy(class_values[key]/total)
-        print("final entropy", entropy)
         return entropy
 
     def __get_feature_classes(self, features, classification):
@@ -141,8 +139,17 @@ class ID3:
                     partitions["right"].append(entry)
         return partitions
 
+    def __determine_label(self, class_values):
+        max_label = None
+        max_value = -math.inf
+        for key in class_values:
+            if class_values[key] > max_value:
+                max_value = class_values[key]
+                max_label = key
+        return max_label
+
     def build_tree(self):
-        print("EXE",self.rec)
+        #print("EXE",self.rec)
         # Create a Node
         root = node.Node()
         class_values = {}
@@ -159,28 +166,33 @@ class ID3:
         if len(class_values) == 1:
             for key in class_values:
                 root.set_label(key)
+                print("determined key", key)
                 return root
+        # When the classifications are only in the dataset
+        # pick the highest occuring classification in the
+        # dataset
+        if len(self.dataset[0]) == 1:
+            print("no more atts",self.__determine_label(class_values))
+            root.set_label(self.__determine_label(class_values))
+            return root
         # Obtain the entropy over the whole data set
         data_entropy = self.__calculate_entropy(class_values, len(self.dataset))
         # Calculate the gain of each feature
         gains = []
         for feature in range(self.total_features):
             gains.append(self.__feature_entropy(feature, data_entropy))
-
+        # Find which feature is the best
         best_feature = gains.index(max(gains, key=lambda x:x[0]))
-        print("max gains",max(gains,key=lambda x:x[0]))
-        print(best_feature)
-        print("feature", self.feature_indices)
-        print(gains)
-        if self.rec == MAX_REC:
-            return
-        print(best_feature)
+        # Set the feature in the node
         root.set_feature_index(self.feature_indices.pop(best_feature))
+        # Create a new set of partitions
         part = self.__create_partitions(best_feature, gains[best_feature][0], gains[best_feature][1])
-        print("partition",part)
-        count = self.rec + 1
-
+        # Iterate through each partition and build a tree
         for key in part:
-            node_build = ID3(part[key], self.feature_indices, count)
-            root.set_branch(key, node_build.build_tree())
+            features = copy.deepcopy(self.feature_indices)
+            # Only process the partition if there is data
+            # associated with it
+            if len(part[key]) != 0:
+                node_build = ID3(part[key], features)
+                root.set_branch(key, node_build.build_tree())
         return root
