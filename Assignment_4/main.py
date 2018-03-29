@@ -1,10 +1,10 @@
 import preprocess
 import utilities
 import id3
-import node
+
 
 def print_node(root):
-    if root == None:
+    if root is None:
         return
     if root.get_leaf():
         print("Leaf value:", root.get_label())
@@ -16,6 +16,30 @@ def print_node(root):
             print(key)
             print_node(branches[key])
 
+
+def predict(test, root):
+    # If the root node is a leaf node return the label
+    if root.get_leaf() is True:
+        value = root.get_label()
+        return root.get_label()
+    else:
+        index = root.get_feature_index()
+        value = test[index]
+        branches = root.get_branches()
+        threshold = root.get_threshold()
+        if threshold is None:
+            try:
+                return predict(test, branches[value])
+            except:
+                print("except")
+                return 0.0
+        else:
+            if value < threshold:
+                return predict(test, branches['left'])
+            else:
+                return predict(test, branches['right'])
+
+
 # Obtain the dataset
 dataset = preprocess.read_file(filename="./abalone.data", split=',')
 # Obtain a column representation
@@ -26,8 +50,18 @@ for entry in range(len(dataset)):
         dataset[entry] = [float(s.replace(',', '')) for s in dataset[entry]]
 # Obtain the row representation
 dataset = utilities.transpose(dataset)
-#dataset = dataset[:40]
+train = dataset[:3100]
+test = dataset[3100:]
 feature_indices = [i for i in range(len(dataset[0]))]
-x = id3.ID3(dataset, feature_indices)
+x = id3.ID3(train, feature_indices)
 y = x.build_tree()
-print_node(y)
+
+correct = 0
+incorrect = 0
+for entry in range(len(test)):
+    x = predict(test[entry],y)
+    if x == test[entry][-1]:
+        correct += 1
+    else:
+        incorrect +=1
+print((correct*100)/(incorrect+correct))

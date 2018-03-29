@@ -149,7 +149,6 @@ class ID3:
         return max_label
 
     def build_tree(self):
-        #print("EXE",self.rec)
         # Create a Node
         root = node.Node()
         class_values = {}
@@ -166,13 +165,11 @@ class ID3:
         if len(class_values) == 1:
             for key in class_values:
                 root.set_label(key)
-                print("determined key", key)
                 return root
         # When the classifications are only in the dataset
         # pick the highest occuring classification in the
         # dataset
         if len(self.dataset[0]) == 1:
-            print("no more atts",self.__determine_label(class_values))
             root.set_label(self.__determine_label(class_values))
             return root
         # Obtain the entropy over the whole data set
@@ -182,11 +179,14 @@ class ID3:
         for feature in range(self.total_features):
             gains.append(self.__feature_entropy(feature, data_entropy))
         # Find which feature is the best
-        best_feature = gains.index(max(gains, key=lambda x:x[0]))
+        best_feature = gains.index(max(gains, key=lambda x: x[0]))
         # Set the feature in the node
         root.set_feature_index(self.feature_indices.pop(best_feature))
         # Create a new set of partitions
         part = self.__create_partitions(best_feature, gains[best_feature][0], gains[best_feature][1])
+        # Set the threshold for the decision node
+        if gains[best_feature][1] is not None:
+            root.set_threshold(gains[best_feature][1])
         # Iterate through each partition and build a tree
         for key in part:
             features = copy.deepcopy(self.feature_indices)

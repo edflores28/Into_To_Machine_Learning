@@ -1,9 +1,10 @@
 class Node:
-    def __init__(self, label=None, feature_index=None):
-        self.feature_index = feature_index
+    def __init__(self):
+        self.feature_index = None
         self.branches = {}
-        self.label = label
+        self.label = None
         self.is_leaf = False
+        self.threshold = None
 
     def get_leaf(self):
         return self.is_leaf
@@ -15,6 +16,11 @@ class Node:
         self.label = label
         self.is_leaf = True
 
+    def set_threshold(self, threshold):
+        self.threshold = threshold
+
+    def get_threshold(self):
+        return self.threshold
 
     def set_branch(self, branch, node):
         self.branches[branch] = node
