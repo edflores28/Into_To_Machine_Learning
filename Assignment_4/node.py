@@ -5,9 +5,13 @@ class Node:
         self.label = None
         self.is_leaf = False
         self.threshold = None
+        self.is_pruned = False
 
     def get_leaf(self):
         return self.is_leaf
+
+    def get_pruned(self):
+        return self.is_pruned
 
     def set_feature_index(self, feature_index):
         self.feature_index = feature_index
@@ -15,6 +19,12 @@ class Node:
     def set_label(self, label):
         self.label = label
         self.is_leaf = True
+
+    def set_leaf(self, leaf):
+        self.is_leaf = leaf
+
+    def set_pruned(self, pruned):
+        self.is_pruned = pruned
 
     def set_threshold(self, threshold):
         self.threshold = threshold
