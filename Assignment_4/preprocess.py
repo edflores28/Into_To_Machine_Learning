@@ -1,6 +1,8 @@
 import re
-import copy
-import utilities
+
+'''
+This package provides utilities for data set preprocessing
+'''
 
 
 def swap_columns(col1, col2, data, rem='True'):
@@ -53,35 +55,14 @@ def build_partition(class_list, class_size):
     return temp
 
 
-def create_partitions(total_parts, class_index, data):
+def create_partitions(total_parts, data):
     '''
-    This method creates a partition dictionary based
-    on the dataset
+    This method patitions the dataset into total_parts
+    and returns a dictionary
     '''
-    class_dict = {}
     column_length = len(data)
     partition_length = int(round(column_length/total_parts, 0))
-    # Swap to column representation
-    data = utilities.transpose(data)
-    # Create keys for the dictionary
-    for entry in data[class_index]:
-        class_dict[entry] = []
-    class_sizes = copy.deepcopy(class_dict)
-    # Swap back to row representation
-    data = utilities.transpose(data)
-    # Iterate through the data set and add the entries
-    # to the class dictionary
-    for row in range(len(data)):
-        class_dict[data[row][class_index]].append(row)
-    # Calculte the percentages for each class and shuffle thhe lists
-    for key in class_dict:
-        temp_pct = len(class_dict[key])/column_length
-        class_sizes[key] = round(partition_length * temp_pct, 0)
-        # random.shuffle(class_dict[key])
     part_dict = {}
-    # Build the partitions
-    for partition in range(total_parts):
-        part_dict[partition] = []
-        for key in class_dict:
-            part_dict[partition] += build_partition(class_dict[key], class_sizes[key])
+    for i in range(total_parts):
+        part_dict[i] = build_partition(data, partition_length)
     return part_dict
