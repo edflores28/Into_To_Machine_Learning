@@ -1,22 +1,38 @@
 import utilities
 import node
 import copy
-import math
+
+'''
+This class performs the ID3 algorithm
+'''
 
 
 class ID3:
     def __init__(self, dataset, feature_indices):
+        '''
+        Constructor for the ID3 algorithm. Takes in the
+        dataset and feature indices
+        '''
         self.dataset = dataset
         self.feature_indices = feature_indices
         self.total_features = len(dataset[0]) - 1
 
     def __calculate_entropy(self, class_values, total):
+        '''
+        This method takes in the values for each classification
+        and computes the entropy
+        '''
         entropy = 0.0
+        # Iterate through each class value
         for key in class_values:
             entropy += utilities.entropy(class_values[key]/total)
         return entropy
 
     def __get_feature_classes(self, features, classification):
+        '''
+        This method takes in the features and classifications and
+        creates a dictionary
+        '''
         feature_values = {}
         # Iterate through each feature entry
         for entry in range(len(features)):
@@ -37,6 +53,9 @@ class ID3:
         return feature_values
 
     def __calculate_gain(self, feature_dict, total_features, data_entropy):
+        '''
+        This method calculates the information gain of the feature
+        '''
         # Create a dictionary that has the entropies for each feature
         entropies = {}
         # Iterate through each feature key
@@ -56,6 +75,9 @@ class ID3:
         return data_entropy + sum(negatives)
 
     def __categorical_gain(self, feature_index, data_entropy):
+        '''
+        This method calculates the gain for categorical features
+        '''
         data = utilities.transpose(self.dataset)
         features = data[feature_index]
         total_features = len(features)
@@ -65,6 +87,12 @@ class ID3:
         return self.__calculate_gain(feature_values, total_features, data_entropy)
 
     def __continuous_gain(self, feature_index, data_entropy):
+        '''
+        This method calculates the information gain for continous features.
+        The midpoint is taken between two entries and the gain is calculated,
+        this is done for the entire list and the best gain with its threshold
+        is returned
+        '''
         data = utilities.transpose(self.dataset)
         total_features = len(data[feature_index])
         feature_class = list(zip(data[feature_index], data[-1]))
@@ -111,44 +139,63 @@ class ID3:
         return max_gain, threshold
 
     def __feature_entropy(self, feature_index, data_entropy):
+        '''
+        This method determines which calculation to use based on whether
+        the feature is continuous or categorical
+        '''
         threshold = None
         gain = 0.0
+        # Use continous gain if the index is a float
         if isinstance(self.dataset[0][feature_index], float):
             gain, threshold = self.__continuous_gain(feature_index, data_entropy)
+        # Otherwise use categorical gain
         else:
             gain = self.__categorical_gain(feature_index, data_entropy)
         return gain, threshold
 
     def __create_partitions(self, feature_index, gain, threshold):
+        '''
+        This method creates a new dataset based on the feature index_list
+        and the threshold
+        '''
         partitions = {}
+        # If threhold is None can assume that this is a categorical feature
         if threshold is None:
+            # Iterate though each entry
             for entry in self.dataset:
                 if entry[feature_index] not in partitions:
                     partitions[entry[feature_index]] = []
                 key = entry[feature_index]
                 del entry[feature_index]
                 partitions[key].append(entry)
+        # Otherwise it is a continous feature
         else:
             partitions = {"left": [], "right": []}
+            # Iterate though each entry
             for entry in self.dataset:
+                # If the value is less than or equal to the
+                # threhold then add it to the left
                 if entry[feature_index] <= threshold:
+                    # Remove the value from the list
                     del entry[feature_index]
                     partitions["left"].append(entry)
+                # Otherwuse add it to the right
                 else:
+                    # Remove the value from the list
                     del entry[feature_index]
                     partitions["right"].append(entry)
         return partitions
 
     def __determine_label(self, class_values):
-        max_label = None
-        max_value = -math.inf
-        for key in class_values:
-            if class_values[key] > max_value:
-                max_value = class_values[key]
-                max_label = key
-        return max_label
+        '''
+        This method determines which class label has the highest count
+        '''
+        return max(class_values.items(), key=lambda x: x[1])[0]
 
     def build_tree(self):
+        '''
+        This method starts the ID3 algorithm
+        '''
         # Create a Node
         root = node.Node()
         class_values = {}
