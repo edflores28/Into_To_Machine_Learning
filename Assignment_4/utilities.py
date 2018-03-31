@@ -1,23 +1,30 @@
 import math
 
-
-def is_float(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
+'''
+The package provides general utilities
+'''
 
 
 def entropy(p):
+    '''
+    This method calculates entropy
+    '''
     return -p*math.log2(p)
 
 
-def distance(x, y):
+def get_train_test_sets(partitions, key):
     '''
-    This method calculates the euclidean distance between c_points
+    This method creates a training and testing based
+    on the partitions key
     '''
-    return math.sqrt(sum([(a - b) ** 2 for a, b in zip(x, y)]))
+    train_list = []
+    test_list = []
+    for test in partitions:
+        if test == key:
+            test_list += partitions[key]
+        else:
+            train_list += partitions[test]
+    return train_list, test_list
 
 
 def transpose(data_list):
