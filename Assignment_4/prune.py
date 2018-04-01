@@ -67,6 +67,7 @@ class Prune:
                 node_copy = branches[key]
                 # Determine the best label of the node
                 label = self.__determine_label(branches[key])
+                print("This node has", label, "as the most common label")
                 # Create a new node and set the label
                 new_node = node.Node()
                 new_node.set_label(label)
@@ -85,6 +86,7 @@ class Prune:
         '''
         This method starts the reduced error pruning algorithm
         '''
+        print("Starting the pruning algorithm")
         performance = []
         # Obtain all the trees
         sublist = self.__get_pruned_trees(self.root, True)
@@ -93,5 +95,6 @@ class Prune:
         for entry in sublist:
             accuracy = tree_utils.predict_accuracy(self.prune_set, entry)
             performance.append(accuracy)
+        print("Generated a total of", len(sublist), "trees and accuracies")
         # Return the maximum performance
         return max(performance)

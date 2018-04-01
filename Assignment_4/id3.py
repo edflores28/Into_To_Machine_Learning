@@ -78,6 +78,7 @@ class ID3:
         '''
         This method calculates the gain for categorical features
         '''
+        print("Determining the gain for categorical values")
         data = utilities.transpose(self.dataset)
         features = data[feature_index]
         total_features = len(features)
@@ -93,6 +94,7 @@ class ID3:
         this is done for the entire list and the best gain with its threshold
         is returned
         '''
+        print("Finding the best gain point of the continous values")
         data = utilities.transpose(self.dataset)
         total_features = len(data[feature_index])
         feature_class = list(zip(data[feature_index], data[-1]))
@@ -132,10 +134,12 @@ class ID3:
             # Calculate the gain and add it to the gain list
             temp = {0: left_vals, 1: right_vals}
             gains.append(self.__calculate_gain(temp, total_features, data_entropy))
+        print("Calculated a total of", len(gains), "gains")
         # Obtain the maximum gain and compute the threshold
         max_gain = max(gains)
         index = gains.index(max_gain)
         threshold = (feature_class[index][0] + feature_class[index+1][0])/2.0
+        print("The maximum gain is", max_gain, "and the decision threshold is", threshold)
         return max_gain, threshold
 
     def __feature_entropy(self, feature_index, data_entropy):
@@ -147,9 +151,11 @@ class ID3:
         gain = 0.0
         # Use continous gain if the index is a float
         if isinstance(self.dataset[0][feature_index], float):
+            print("Feature", feature_index, "contains continuous values")
             gain, threshold = self.__continuous_gain(feature_index, data_entropy)
         # Otherwise use categorical gain
         else:
+            print("Feature", feature_index, "contains categorical values")
             gain = self.__categorical_gain(feature_index, data_entropy)
         return gain, threshold
 
@@ -158,6 +164,7 @@ class ID3:
         This method creates a new dataset based on the feature index_list
         and the threshold
         '''
+        print("Creating a new data set based on feature", feature_index)
         partitions = {}
         # If threhold is None can assume that this is a categorical feature
         if threshold is None:
@@ -212,12 +219,14 @@ class ID3:
         if len(class_values) == 1:
             for key in class_values:
                 root.set_label(key)
+                print("Created a leaf node with label", root.get_label())
                 return root
         # When the classifications are only in the dataset
         # pick the highest occuring classification in the
         # dataset
         if len(self.dataset[0]) == 1:
             root.set_label(self.__determine_label(class_values))
+            print("Created a leaf node with label", root.get_label())
             return root
         # Obtain the entropy over the whole data set
         data_entropy = self.__calculate_entropy(class_values, len(self.dataset))
@@ -227,6 +236,7 @@ class ID3:
             gains.append(self.__feature_entropy(feature, data_entropy))
         # Find which feature is the best
         best_feature = gains.index(max(gains, key=lambda x: x[0]))
+        print("Determined the best feature to be", best_feature)
         # Set the feature in the node
         root.set_feature_index(self.feature_indices.pop(best_feature))
         # Create a new set of partitions
@@ -240,6 +250,7 @@ class ID3:
             # Only process the partition if there is data
             # associated with it
             if len(part[key]) != 0:
+                print("Building a decision node")
                 node_build = ID3(part[key], features)
                 root.set_branch(key, node_build.build_tree())
         return root
