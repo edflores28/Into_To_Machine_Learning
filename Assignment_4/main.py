@@ -61,7 +61,7 @@ def do_abalone():
         temp_p_acc = prune_tree.reduced_error_prune()
         p_accuracy += temp_p_acc
         print("\nPruned accuracy for partition", key, "is", temp_p_acc, "\n")
-        input("Press Enter to continue...")
+        #input("Press Enter to continue...")
     print("Percentage of total correct without pruning:", accuracy/total_parts)
     print("Percentage of total correct with pruning:", p_accuracy/total_parts)
 
@@ -118,7 +118,7 @@ def do_segmentation():
         temp_p_acc = prune_tree.reduced_error_prune()
         p_accuracy += temp_p_acc
         print("\nPruned accuracy for partition", key, "is", temp_p_acc, "\n")
-        input("Press Enter to continue...")
+        #input("Press Enter to continue...")
     print("Percentage of total correct without pruning:", accuracy/total_parts)
     print("Percentage of total correct with pruning:", p_accuracy/total_parts)
 
@@ -162,7 +162,7 @@ def do_car():
         temp_p_acc = prune_tree.reduced_error_prune()
         p_accuracy += temp_p_acc
         print("\nPruned accuracy for partition", key, "is", temp_p_acc, "\n")
-        input("Press Enter to continue...")
+        #input("Press Enter to continue...")
     print("Percentage of total correct without pruning:", accuracy/total_parts)
     print("Percentage of total correct with pruning:", p_accuracy/total_parts)
 
