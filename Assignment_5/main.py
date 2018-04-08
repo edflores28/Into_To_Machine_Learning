@@ -32,10 +32,38 @@ def do_house_votes():
     #dataset = dataset[:5]
     print("Creating a total of", total_parts, "partitions")
     parts = preprocess.create_partitions(total_parts, dataset)
-    train, test = utilities.get_train_test_sets(parts, 0)
+    for key in parts.keys():
+        train, test = utilities.get_train_test_sets(parts, key)
+        log_reg = logistic_regression.LG(copy.deepcopy(train), copy.deepcopy(test))
+        log_reg.train_model()
+        log_reg.test_model()
 
-    log_reg = logistic_regression.LG(copy.deepcopy(train), copy.deepcopy(test))
-    log_reg.train_model()
-    log_reg.test_model()
+def do_iris():
+    print("The iris dataset will be processed and tested.")
+    # Read the data for the specified file
+    dataset = preprocess.read_file("./iris.data")
+    # Swap the specified columns in order to have the classifications
+    # in the first column.
+    #dataset = preprocess.swap_columns(0,4,dataset,False)
+    dataset = utilities.transpose(dataset)
+    # For continous data convert them from strings to float
+    for entry in range(len(dataset)):
+        if utilities.is_float(dataset[entry][0]):
+            dataset[entry] = [float(s.replace(',', '')) for s in dataset[entry]]
+    dataset = utilities.transpose(dataset)
 
-do_house_votes()
+    iris_dict = {'Iris-virginica' : 0,
+                 'Iris-versicolor': 1,
+                 'Iris-setosa'    : 2}
+    preprocess.build_multiclass(dataset,iris_dict)
+
+    # Convert the real data present in the dataset and diiscretize them.
+    # dataset = preprocess.build_discrete(dataset)
+    #
+    #
+    # # Build the naive bayes likleihood table.
+    # naive_table = naive_bayes.build_table(train)
+    # # Test the model.
+    # naive_bayes.test(test, naive_table)
+#do_house_votes()
+do_iris()

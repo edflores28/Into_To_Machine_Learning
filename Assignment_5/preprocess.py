@@ -143,4 +143,4 @@ with 3+ classes
 def build_multiclass(data, data_dict):
     temp = []
     for i in range(len(data)):
-        data[i][0] = data_dict[data[i][0]]
+        data[i][-1] = data_dict[data[i][-1]]

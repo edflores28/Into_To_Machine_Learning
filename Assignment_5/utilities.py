@@ -4,6 +4,17 @@ import math
 The package provides general utilities
 '''
 
+def is_float(value):
+    '''
+    This method determins whether the value
+    is a float
+    '''
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
 
 def sigmoid(z):
     '''
