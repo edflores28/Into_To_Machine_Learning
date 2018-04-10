@@ -1,8 +1,11 @@
 import copy
 import preprocess
-import logistic_regression
+import multiclass_lr
+import twoclass_lr
 import utilities
+import random
 
+TOTAL_PARTITIONS = 5
 def do_house_votes():
     '''
     This method executes the house votes dataset test.
@@ -31,12 +34,13 @@ def do_house_votes():
     #naive_bayes.test(test, naive_table)
     #dataset = dataset[:5]
     print("Creating a total of", total_parts, "partitions")
-    parts = preprocess.create_partitions(total_parts, dataset)
+    parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     for key in parts.keys():
         train, test = utilities.get_train_test_sets(parts, key)
-        log_reg = logistic_regression.LG(copy.deepcopy(train), copy.deepcopy(test))
+        log_reg = twoclass_lr.LG(copy.deepcopy(train), copy.deepcopy(test))
         log_reg.train_model()
         log_reg.test_model()
+
 
 def do_iris():
     print("The iris dataset will be processed and tested.")
@@ -50,13 +54,23 @@ def do_iris():
     for entry in range(len(dataset)):
         if utilities.is_float(dataset[entry][0]):
             dataset[entry] = [float(s.replace(',', '')) for s in dataset[entry]]
+            preprocess.normalize_data(dataset[entry])
+
     dataset = utilities.transpose(dataset)
 
-    iris_dict = {'Iris-virginica' : 0,
+    iris_dict = {'Iris-virginica': 0,
                  'Iris-versicolor': 1,
-                 'Iris-setosa'    : 2}
+                 'Iris-setosa': 2}
     preprocess.build_multiclass(dataset,iris_dict)
+    #random.shuffle(dataset)
 
+
+    parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
+    for key in parts.keys():
+        train, test = utilities.get_train_test_sets(parts, key)
+        test = multiclass_lr.LR(train, test, 3)
+        test.train_model()
+        test.test_model()
     # Convert the real data present in the dataset and diiscretize them.
     # dataset = preprocess.build_discrete(dataset)
     #
@@ -65,5 +79,54 @@ def do_iris():
     # naive_table = naive_bayes.build_table(train)
     # # Test the model.
     # naive_bayes.test(test, naive_table)
+
+
+def do_breast_cancer():
+    '''
+    This method executes the breast cancer dataset test.
+    '''
+    print("The breast dataset will be processed and tested.")
+    # Read the data for the specified file
+    dataset = preprocess.read_file("./breast-cancer-wisconsin.data")
+    # Obtain column representation
+    dataset = utilities.transpose(dataset)
+    # Iterate through each column and fill in any missing entries
+    # and convert the string to integers
+    for entry in range(len(dataset)):
+        preprocess.fill_column(dataset[entry])
+        dataset[entry] = [int(i) for i in dataset[entry]]
+        if entry != len(dataset) - 1:
+            preprocess.normalize_data(dataset[entry])
+    # Delete index 0 since this is the ID field and is not needed
+    del dataset[0]
+    # Obtain row representation
+    dataset = utilities.transpose(dataset)
+    # Convert the class column into boolean, 1 for 4(malignant), 0 for 2(benign)
+    preprocess.convert_column(dataset, 4, 2)
+    random.shuffle(dataset)
+    parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
+    for key in parts.keys():
+        train, test = utilities.get_train_test_sets(parts, key)
+        log_reg = twoclass_lr.LG(copy.deepcopy(train), copy.deepcopy(test))
+        log_reg.train_model()
+        log_reg.test_model()
+
+    # # Randomize the dataset
+    # random.shuffle(dataset)
+    # # Set the default wwights
+    # winnow_weights = winnow.set_default_weights(dataset[0][1:])
+    # # Split the data set into a train and test set
+    # train, test = preprocess.split_list(dataset)
+    # # Train the model.
+    # winnow_weights = winnow.train(winnow_weights, train)
+    # # Test the model.
+    # winnow.test(winnow_weights,test)
+    # # Build the naive bays likleihood table
+    # naive_table = naive_bayes.build_table(train)
+    # # Test the model out
+    # naive_bayes.test(test, naive_table)
+
+
+do_breast_cancer()
 #do_house_votes()
-do_iris()
+#do_iris()

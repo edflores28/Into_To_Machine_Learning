@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 import random
+import utilities
+
 
 TOTAL_BINS = 4
 
@@ -58,13 +60,11 @@ def create_partitions(total_parts, data):
     return part_dict
 
 
-'''
-This method splits the datalist into 75%
-for training data and 25% for testing data1
-'''
-def split_list(data_list):
-    size = int(0.75*len(data_list))
-    return data_list[:size], data_list[size:]
+def normalize_data(column):
+    minimum = min(column)
+    maximum = max(column)
+    for entry in range(len(column)):
+        column[entry] = (column[entry]-minimum)/(maximum-minimum)
 
 def get_minmax(column):
     if '?' in column:
@@ -124,17 +124,28 @@ def convert_house_data(data):
                 value = random.randint(0,1)
             data[i][j] = value
 
-'''
-This method converts the class/result column into discrete
-values, where one is the value to convert to 1 and zero is
-the value to convert to zero.
-'''
+
 def convert_column(data_list, one, zero):
+    '''
+    This method converts the class/result column into discrete
+    values, where one is the value to convert to 1 and zero is
+    the value to convert to zero.
+    '''
     for i in range(len(data_list)):
-        if data_list[i][0] == one:
-            data_list[i][0] = 1
-        if data_list[i][0] == zero:
-            data_list[i][0] = 0
+        if data_list[i][-1] == one:
+            data_list[i][-1] = 1
+        if data_list[i][-1] == zero:
+            data_list[i][-1] = 0
+
+
+def fill_column(column):
+    if '?' in column:
+        temp = [int(x) for x in column if x != '?']
+        minimum = min(temp)
+        maximum = max(temp)
+        for entry in range(len(column)):
+            if column[entry] == '?':
+                column[entry] = random.uniform(minimum, maximum)
 
 '''
 This method creates updated row entries for table_list
