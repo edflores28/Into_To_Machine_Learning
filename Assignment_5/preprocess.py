@@ -64,7 +64,10 @@ def normalize_data(column):
     minimum = min(column)
     maximum = max(column)
     for entry in range(len(column)):
-        column[entry] = (column[entry]-minimum)/(maximum-minimum)
+        try:
+            column[entry] = (column[entry]-minimum)/(maximum-minimum)
+        except ZeroDivisionError:
+            column[entry] = 0.0
 
 def get_minmax(column):
     if '?' in column:
@@ -82,11 +85,11 @@ def digitize(column):
     tmin, tmax = get_minmax(column)
     for i, entry in enumerate(column):
         if entry == '?':
-            column[i] = random.uniform(float(tmin),float(tmax))
+            column[i] = random.uniform(float(tmin), float(tmax))
     column = [float(i) for i in column]
     bins = np.linspace(float(tmin), float(tmax), TOTAL_BINS)
     x = np.array(column)
-    inds = np.digitize(x,bins)
+    inds = np.digitize(x, bins)
     disc_list = []
     for i in range(len(column)):
         disc_list.append([])
@@ -99,14 +102,14 @@ This method takes a data list and coverts the whole dataset
 minus the class column into a discrete test_list
 '''
 def build_discrete(data):
-    temp = transpose(data)
-    for i in range(1, len(temp)):
+    temp = utilities.transpose(data)
+    for i in range(len(temp)):
         temp[i] = digitize(temp[i])
-    temp = transpose(temp)
-    for  i in range(len(temp)):
-        temp[i]= list(itertools.chain.from_iterable(temp[i]))
+    temp = utilities.transpose(temp)
+    for i in range(len(temp)):
+        temp[i] = list(itertools.chain.from_iterable(temp[i]))
         temp[i][0] = int(temp[i][0])
-    return temp;
+    return temp
 
 
 def convert_house_data(data):

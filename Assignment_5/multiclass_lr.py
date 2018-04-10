@@ -3,7 +3,7 @@ import random
 
 
 class LR:
-    def __init__(self, train, test, total_class, learn_rate=0.001):
+    def __init__(self, train, test, total_class, learn_rate=0.03):
         self.train = train
         self.test = test
         self.learn_rate = learn_rate
