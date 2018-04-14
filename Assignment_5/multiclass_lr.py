@@ -1,9 +1,16 @@
 import math
 import random
 
+'''
+This class performs the multi class logistic regression algorithm
+'''
 
-class LR:
-    def __init__(self, train, test, total_class, learn_rate=0.03):
+
+class Model:
+    def __init__(self, train, test, total_class, learn_rate=0.001):
+        '''
+        Initialization
+        '''
         self.train = train
         self.test = test
         self.learn_rate = learn_rate
@@ -13,8 +20,12 @@ class LR:
             temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
             self.weights.append(temp)
 
-    def __determine_accuracy(self, train=True):
-        correct = 0
+    def __determine_error(self, train=True):
+        '''
+        This method determines the total error of the
+        set. If train is set to true the training set
+        will be used otherwise the testing set is used
+        '''
         incorrect = 0
         # Set the temp list according to the flag
         if train:
@@ -26,14 +37,15 @@ class LR:
             y = self.__predict_y(row)
             # Choose the label with the highest value
             max_index = y.index(max(y))
-            if max_index == row[-1]:
-                correct += 1
-            else:
+            if max_index != row[-1]:
                 incorrect += 1
         # Return the values
-        return correct, incorrect
+        return incorrect
 
     def __predict_y(self, row):
+        '''
+        This method makes a prediction for the given row
+        '''
         y = []
         values = []
         # Iterate through all the class labels and calculate
@@ -55,9 +67,13 @@ class LR:
         return y
 
     def train_model(self):
-        prev_misclass = -100
-        misclass = 0
-        while misclass != prev_misclass:
+        '''
+        This method trains the two class logistic regression
+        algorithm
+        '''
+        prev_error = -100
+        error = 0
+        while error != prev_error:
             class_deltas = []
             # Initalizez the deltas
             for i in range(self.total_class):
@@ -80,11 +96,15 @@ class LR:
                     self.weights[label][i] += class_deltas[label][i] * self.learn_rate
             # Obtain the total missclassifications
             # and update the previous value
-            prev_misclass = misclass
-            unused, misclass = self.__determine_accuracy()
-            if misclass == 0:
+            prev_error = error
+            error = self.__determine_error()
+            if error == 0:
                 break
 
     def test_model(self):
-        correct, incorrect = self.__determine_accuracy(False)
-        print((correct*100)/(incorrect+correct))
+        '''
+        This method tests the trained model
+        '''        
+        # Calculate the total error for the testing set
+        incorrect = self.__determine_error(False)
+        return((incorrect*100)/(len(self.test)))

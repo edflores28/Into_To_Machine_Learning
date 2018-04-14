@@ -1,23 +1,37 @@
 import random
 import utilities
 
+'''
+This class performs the two class logistic regression algorithm
+'''
 
-class LG:
-    def __init__(self, train, test, learn_rate=0.01):
+
+class Model:
+    def __init__(self, train, test, learn_rate=0.001):
+        '''
+        Initialization
+        '''
         self.train = train
         self.test = test
         self.weights = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
         self.learn_rate = learn_rate
 
     def __predict_y(self, row):
+        '''
+        This method makes a prediction for the given row
+        '''
         # Multiply the weights and each x value in the row
         # minus the classification value
         values = [a*b for a, b in zip(self.weights[1:], row[:-1])]
         summation = sum(values)
         return (utilities.sigmoid(summation + self.weights[0]))
 
-    def __determine_accuracy(self, train=True):
-        correct = 0
+    def __determine_error(self, train=True):
+        '''
+        This method determines the total error of the
+        set. If train is set to true the training set
+        will be used otherwise the testing set is used
+        '''
         incorrect = 0
         # Set the temp list according to the flag
         if train:
@@ -27,17 +41,19 @@ class LG:
         # Iterate through each row and make a prediction
         for row in temp:
             y = self.__predict_y(row)
-            if y >= 0.5:
-                correct += 1
-            else:
+            if y < 0.5:
                 incorrect += 1
         # Return the values
-        return correct, incorrect
+        return incorrect
 
     def train_model(self):
-        prev_misclass = -100
-        misclass = 0
-        while misclass != prev_misclass:
+        '''
+        This method trains the two class logistic regression
+        algorithm
+        '''
+        prev_error = -100
+        error = 0
+        while error != prev_error:
             # Initial value for the delta weights
             deltas = [0.0 for i in range(len(self.weights))]
             # Iterate through each training entry
@@ -57,9 +73,13 @@ class LG:
                 self.weights[i] += self.learn_rate*deltas[i]
             # Obtain the total missclassifications
             # and update the previous value
-            prev_misclass = misclass
-            unused, misclass = self.__determine_accuracy()
+            prev_error = error
+            error = self.__determine_error()
 
     def test_model(self):
-        correct, incorrect = self.__determine_accuracy(False)
-        print((correct*100)/(incorrect+correct))
+        '''
+        This method tests the trained model
+        '''
+        # Calculate the total error for the testing set
+        incorrect = self.__determine_error(False)
+        return((incorrect*100)/(len(self.test)))

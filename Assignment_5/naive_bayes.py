@@ -1,3 +1,8 @@
+'''
+This class performs the naive bayes algorithm
+'''
+
+
 class Model:
     def __init__(self, train, test, labels):
         '''
@@ -56,14 +61,10 @@ class Model:
         '''
         This method makes predictions for the training set
         '''
-        correct = 0
         incorrect = 0
         # Iterate through each row and make a prediction
         for row in self.test:
             pred = self.__predict(row)
-            if pred == row[-1]:
-                correct += 1
-            else:
+            if pred != row[-1]:
                 incorrect += 1
-        print("Naive Bayes Statistics:")
-        print("Percentage matched:\t", (correct*100)/(correct+incorrect),"\n")
+        return((incorrect*100)/(len(self.test)))

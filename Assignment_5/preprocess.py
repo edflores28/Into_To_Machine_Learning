@@ -7,10 +7,16 @@ import utilities
 TOTAL_BINS = 4
 
 '''
-This method reads a file line by line and discards
-the /n character
+This package contrains methods that are used to preprocess
+the data set
 '''
+
+
 def read_file(filename):
+    '''
+    This method reads a file line by line and discards
+    the /n character
+    '''
     temp = []
     with open(filename) as file:
         for line in file:
@@ -61,6 +67,9 @@ def create_partitions(total_parts, data):
 
 
 def normalize_data(column):
+    '''
+    This method normalizes the data of a column
+    '''
     minimum = min(column)
     maximum = max(column)
     for entry in range(len(column)):
@@ -69,19 +78,25 @@ def normalize_data(column):
         except ZeroDivisionError:
             column[entry] = 0.0
 
+
 def get_minmax(column):
+    '''
+    This method returns the min and max values
+    of a column
+    '''
     if '?' in column:
         missing = column.index('?')
         return min(column[:missing]), max(column[:missing])
     return min(column), max(column)
 
-'''
-This method takes a column converts it to float
-and creates a discrete list based on TOTAL_BINS
-it also generates a random number for the dataset
-if a ? is encountered
-'''
+
 def digitize(column):
+    '''
+    This method takes a column converts it to float
+    and creates a discrete list based on TOTAL_BINS
+    it also generates a random number for the dataset
+    if a ? is encountered
+    '''
     tmin, tmax = get_minmax(column)
     for i, entry in enumerate(column):
         if entry == '?':
@@ -97,18 +112,20 @@ def digitize(column):
         disc_list[i][inds[i]-1] = 1
     return disc_list
 
-'''
-This method takes a data list and coverts the whole dataset
-minus the class column into a discrete test_list
-'''
+
 def build_discrete(data):
+    '''
+    This method takes a data list and coverts the whole dataset
+    minus the class column into a discrete test_list
+    '''
     temp = utilities.transpose(data)
-    for i in range(len(temp)):
+    for i in range(len(temp[:-1])):
         temp[i] = digitize(temp[i])
     temp = utilities.transpose(temp)
     for i in range(len(temp)):
-        temp[i] = list(itertools.chain.from_iterable(temp[i]))
-        temp[i][0] = int(temp[i][0])
+        label = temp[i][-1]
+        temp[i] = list(itertools.chain.from_iterable(temp[i][:-1]))
+        temp[i].append(label)
     return temp
 
 
@@ -124,7 +141,7 @@ def convert_house_data(data):
             if value == 'democrat' or value == 'y':
                 value = 1
             if value == '?':
-                value = random.randint(0,1)
+                value = random.randint(0, 1)
             data[i][j] = value
 
 
@@ -141,20 +158,11 @@ def convert_column(data_list, one, zero):
             data_list[i][-1] = 0
 
 
-def fill_column(column):
-    if '?' in column:
-        temp = [int(x) for x in column if x != '?']
-        minimum = min(temp)
-        maximum = max(temp)
-        for entry in range(len(column)):
-            if column[entry] == '?':
-                column[entry] = random.uniform(minimum, maximum)
-
-'''
-This method creates updated row entries for table_list
-with 3+ classes
-'''
 def build_multiclass(data, data_dict):
+    '''
+    This method creates updated row entries for table_list
+    with 3+ classes
+    '''
     temp = []
     for i in range(len(data)):
         data[i][-1] = data_dict[data[i][-1]]
