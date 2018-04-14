@@ -16,8 +16,6 @@ class Model:
         self.weights = []
         self.learn_rate = learn_rate
         self.total_classes = total_classes
-        print(len(train[0]))
-        print(train[0])
         if total_classes <= 2:
             self.weights = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
         else:
@@ -114,7 +112,7 @@ class Model:
     def test_model(self):
         '''
         This method tests the trained model
-        '''                
+        '''
         incorrect = 0
         summation, temp = self.__calculate(self.test[0])
         for row in self.test:
