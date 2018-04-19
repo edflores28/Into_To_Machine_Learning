@@ -5,6 +5,8 @@ import utilities
 This class performs the adaline network algorithm
 '''
 
+MAX_PRINT = 5
+
 
 class Model:
     def __init__(self, train, test, total_classes, learn_rate=0.001):
@@ -16,11 +18,15 @@ class Model:
         self.weights = []
         self.learn_rate = learn_rate
         self.total_classes = total_classes
+        print("Initial set of weights")
         if total_classes <= 2:
             self.weights = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
+            print(self.weights[:MAX_PRINT])
         else:
             for entry in range(total_classes):
-                self.weights.append([random.uniform(-1.0, 1.0) for i in range(len(train[0]))])
+                temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
+                print(temp[:MAX_PRINT])
+                self.weights.append(temp)
 
     def __calculate(self, row):
         '''
@@ -71,6 +77,8 @@ class Model:
         '''
         This method trains the adaline network
         '''
+        print("Training the adaline network")
+        count = 0
         total_errors = []
         # Create additional entries for each class
         if self.total_classes > 2:
@@ -79,16 +87,35 @@ class Model:
         for row in self.train:
             # Calculate y and obtain the temporary row
             y, temp = self.__calculate(row)
+            # Print to console
+            if count < MAX_PRINT:
+                print("y =", y)
+                count += 1
             # Calculate the errors and append them to a list
             if self.total_classes <= 2:
                 errors = [(row[-1]-y)*temp[i] for i in range(len(temp))]
                 total_errors.append(errors)
             else:
+                # Print to console
+                for output in range(len(y)):
+                    if count < MAX_PRINT:
+                        print("y=", y[output], "for class:", output)
+                        count += 1
                 for entry in range(self.total_classes):
-                    errors = [(row[-1]-y[entry])*temp[i] for i in range(len(temp))]
+                    t_res = 0
+                    if entry == row[-1]:
+                        t_res = 1
+                    errors = [(t_res-y[entry])*temp[i] for i in range(len(temp))]
                     total_errors[entry].append(errors)
         # Perform the final update on the weights
         self.__update_weights(total_errors)
+        print("Final set of weights:")
+        if self.total_classes > 2:
+            for entry in range(len(self.weights)):
+                print("Class label:", entry)
+                print(self.weights[entry][:MAX_PRINT])
+        else:
+            print(self.weights[:MAX_PRINT])
 
     def __predict(self, row):
         '''
@@ -113,10 +140,16 @@ class Model:
         '''
         This method tests the trained model
         '''
+        print("\nTesting the adaline network")
+        count = 0
         incorrect = 0
         summation, temp = self.__calculate(self.test[0])
         for row in self.test:
             pred = self.__predict(row)
+            if count < MAX_PRINT:
+                print("Predicted:", pred, "Expected:", row[-1])
+                count += 1
             if pred != row[-1]:
                 incorrect += 1
+        print("\n")
         return((incorrect*100)/len(self.test))

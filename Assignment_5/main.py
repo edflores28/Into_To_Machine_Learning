@@ -1,9 +1,8 @@
-import adaline_network
 import copy
 import preprocess
 import utilities
 import random
-
+import argparse
 
 TOTAL_PARTITIONS = 5
 
@@ -23,17 +22,21 @@ def do_house_votes():
     random.shuffle(dataset)
     print("Creating a total of", TOTAL_PARTITIONS, "partitions")
     print("Using the logistic regression model")
+    input("Press Enter to continue...")
     # Create the partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     # Obtain the error for logistic regression
     log_error = utilities.two_class_lr_test(parts)
     print("The logistic regression error rate is:", log_error/TOTAL_PARTITIONS, "\n")
     print("Using the Naive Bayes Model")
+    input("Press Enter to continue...")
     # Build the total labels
     labels = [i for i in range(2)]
     # Obtain the error for naive bayes
     naive_error = utilities.naive_test(parts, labels)
     print("The naive bayes error rate is:", naive_error/TOTAL_PARTITIONS, "\n")
+    print("Using the Adaline Network model")
+    input("Press Enter to continue...")
     adaline_error = utilities.adaline_test(parts, 2)
     print("The adaline network error rate is:", adaline_error/TOTAL_PARTITIONS, "\n")
 
@@ -56,17 +59,21 @@ def do_iris():
     adaline_data = copy.deepcopy(dataset)
     print("Creating a total of", TOTAL_PARTITIONS, "partitions")
     print("Using the logistic regression model")
+    input("Press Enter to continue...")
     # Create the partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     # Obtain the error for logistic regression
     log_error = utilities.multi_class_lr_test(parts, 3)
     print("The logistic regression error rate is:", log_error/TOTAL_PARTITIONS, "\n")
     print("Using the Naive Bayes Model")
+    input("Press Enter to continue...")
     # Build the total labels
     labels = [i for i in range(3)]
     # Obtain the error for naive bayes
     naive_error = utilities.naive_test(parts, labels)
     print("The naive bayes error rate is:", naive_error/TOTAL_PARTITIONS, "\n")
+    print("Using the Adaline Network model")
+    input("Press Enter to continue...")
     # Obtain column representation
     adaline_data = utilities.transpose(adaline_data)
     # Normalize the data
@@ -105,15 +112,19 @@ def do_breast_cancer():
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Creating a total of", TOTAL_PARTITIONS, "partitions")
     print("Using the logistic regression model")
+    input("Press Enter to continue...")
     # Obtain the error for logistic regression
     log_error = utilities.two_class_lr_test(parts)
     print("The logistic regression error rate is:", log_error/TOTAL_PARTITIONS, "\n")
     print("Using the Naive Bayes Model")
+    input("Press Enter to continue...")
     # Build the total labels
     labels = [i for i in range(2)]
     # Obtain the error for naive bayes
     naive_error = utilities.naive_test(parts, labels)
     print("The naive bayes error rate is:", naive_error/TOTAL_PARTITIONS, "\n")
+    print("Using the Adaline Network model")
+    input("Press Enter to continue...")
     # Obtain column representation
     adaline_data = utilities.transpose(adaline_data)
     # Normalize the data
@@ -127,10 +138,10 @@ def do_breast_cancer():
     print("The adaline network error rate is:", adaline_error/TOTAL_PARTITIONS, "\n")
 
 
-'''
-This method executes the glass dataset test.
-'''
 def do_glass():
+    '''
+    This method executes the glass dataset test.
+    '''
     print("The glass dataset will be processed and tested.\n")
     # Read the data for the specified file
     dataset = preprocess.read_file("./glass.data")
@@ -154,17 +165,21 @@ def do_glass():
     adaline_data = copy.deepcopy(dataset)
     print("Creating a total of", TOTAL_PARTITIONS, "partitions")
     print("Using the logistic regression model")
+    input("Press Enter to continue...")
     # Create the partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     # Obtain the error for logistic regression
     log_error = utilities.multi_class_lr_test(parts, 6)
     print("The logistic regression error rate is:", log_error/TOTAL_PARTITIONS, "\n")
     print("Using the Naive Bayes Model")
+    input("Press Enter to continue...")
     # Build the total labels
     labels = [i for i in range(6)]
     # Obtain the error for naive bayes
     naive_error = utilities.naive_test(parts, labels)
     print("The naive bayes error rate is:", naive_error/TOTAL_PARTITIONS, "\n")
+    print("Using the Adaline Network model")
+    input("Press Enter to continue...")
     # Obtain column representation
     adaline_data = utilities.transpose(adaline_data)
     # Normalize the data
@@ -178,10 +193,10 @@ def do_glass():
     print("The adaline network error rate is:", adaline_error/TOTAL_PARTITIONS, "\n")
 
 
-'''
-This method executes the soybean dataset test.
-'''
 def do_soy():
+    '''
+    This method executes the soybean dataset test.
+    '''
     print("The soybean dataset will be processed and tested.\n")
     # Read the data for the specified file
     dataset = preprocess.read_file("./soybean-small.data")
@@ -198,17 +213,21 @@ def do_soy():
     adaline_data = copy.deepcopy(dataset)
     print("Creating a total of", TOTAL_PARTITIONS, "partitions")
     print("Using the logistic regression model")
+    input("Press Enter to continue...")
     # Create the partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     # Obtain the error for logistic regression
     log_error = utilities.multi_class_lr_test(parts, 4)
     print("The logistic regression error rate is:", log_error/TOTAL_PARTITIONS, "\n")
     print("Using the Naive Bayes Model")
+    input("Press Enter to continue...")
     # Build the total labels
     labels = [i for i in range(4)]
     # Obtain the error for naive bayes
     naive_error = utilities.naive_test(parts, labels)
     print("The naive bayes error rate is:", naive_error/TOTAL_PARTITIONS, "\n")
+    print("Using the Adaline Network model")
+    input("Press Enter to continue...")
     # Obtain column representation
     adaline_data = utilities.transpose(adaline_data)
     # Normalize the data
@@ -221,8 +240,27 @@ def do_soy():
     adaline_error = utilities.adaline_test(parts, 4)
     print("The adaline network error rate is:", adaline_error/TOTAL_PARTITIONS, "\n")
 
-#do_soy()
-#do_glass()
-#do_breast_cancer()
-do_house_votes()
-#do_iris()
+'''
+MAIN APPLICATION
+'''
+# Create a parser for the command line arguments
+parser = argparse.ArgumentParser(description="Intro to ML Project 5")
+parser.add_argument('-v', action="store_true", default=False, help='Execute house votes test')
+parser.add_argument('-s', action="store_true", default=False, help='Execute soybean test')
+parser.add_argument('-b', action="store_true", default=False, help='Execute breast cancer test')
+parser.add_argument('-i', action="store_true", default=False, help='Execute iris test')
+parser.add_argument('-g', action="store_true", default=False, help='Execute glass test')
+
+results = parser.parse_args()
+
+# Perform the tests based on the input
+if results.v:
+    do_house_votes()
+if results.s:
+    do_soy()
+if results.b:
+    do_breast_cancer()
+if results.i:
+    do_iris()
+if results.g:
+    do_glass()

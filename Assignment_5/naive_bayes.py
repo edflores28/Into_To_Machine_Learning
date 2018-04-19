@@ -2,6 +2,8 @@
 This class performs the naive bayes algorithm
 '''
 
+MAX_PRINT = 5
+
 
 class Model:
     def __init__(self, train, test, labels):
@@ -44,6 +46,7 @@ class Model:
         '''
         This method trains the naive bayes model
         '''
+        count = 0
         for row in self.train:
             # Get the class label
             label = row[-1]
@@ -52,19 +55,37 @@ class Model:
             # Count each entry in the row
             for entry in range(len(row[:-1])):
                 self.labels[label][entry+1][row[entry]] += 1
+            # Print to console
+            if count < MAX_PRINT:
+                print("Current counts")
+                for entry in self.labels.keys():
+                    print("Class label:", entry, "Counts:", self.labels[entry][:MAX_PRINT])
+                    count += 1
+        count = 0
         # Convert the values into probabilities
         for key in self.labels.keys():
             self.__conv_pct(self.labels[key])
             self.labels[key][0] /= len(self.train)
+            # Print to console
+            if count < MAX_PRINT:
+                print("Current probabilities")
+                for entry in self.labels.keys():
+                    print("Class label:", entry, "Probabilities:", self.labels[entry][:MAX_PRINT])
+                    count += 1
 
     def test_model(self):
         '''
         This method makes predictions for the training set
         '''
+        print("\nTesting naive bayes")
         incorrect = 0
+        count = 0
         # Iterate through each row and make a prediction
         for row in self.test:
             pred = self.__predict(row)
+            if count < MAX_PRINT:
+                print("Predicted:", pred, "Expected:", row[-1])
+                count += 1
             if pred != row[-1]:
                 incorrect += 1
         return((incorrect*100)/(len(self.test)))
