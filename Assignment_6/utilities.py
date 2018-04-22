@@ -21,6 +21,20 @@ def signum(x):
     else:
         return 0
 
+def calculate_derivative(x):
+    '''
+    This method calculates the derivative of
+    the sigmoid function
+    '''
+    return x * (1 - x)
+
+def calculate_sigmoid(weights, input):
+    '''
+    This method multplies the weights and input
+    and calculates the sigmoid
+    '''
+    values = [a*b for a, b in zip(weights[1:], input)]
+    return sigmoid(sum(values) + weights[0])
 
 def get_train_test_sets(partitions, key):
     '''
@@ -35,7 +49,6 @@ def get_train_test_sets(partitions, key):
         else:
             train_list += partitions[test]
     return train_list, test_list
-
 
 def transpose(data_list):
     '''
