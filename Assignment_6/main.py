@@ -25,7 +25,7 @@ def do_house_votes():
     # Create the partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     train, test = utilities.get_train_test_sets(parts, 0)
-    prop = backpropagation.ZeroLayer(train, test, 1)
+    prop = backpropagation.OneLayer(train, test, 10, 1)
     prop.train_model()
 
     prop.test_model()

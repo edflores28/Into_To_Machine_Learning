@@ -1,6 +1,7 @@
 import random
 import utilities
-
+import numpy as np
+import itertools
 
 class ZeroLayer:
     def __init__(self, train, test, total_classes, learn_rate=0.001):
@@ -8,18 +9,18 @@ class ZeroLayer:
         self.test = test
         self.learn_rate = learn_rate
         self.total_classes = total_classes
-        self.out_weights = []
-        self.layer_one_weights = []
+        self.weightsO = []
+        self.weightsI = []
         self.layer_two_weights = []
         # Create weights used by the output layer
         for i in range(total_classes):
             temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
-            self.out_weights.append(temp)
+            self.weightsO.append(temp)
 
     def __forward_propagate(self, row):
         out_layer_values = []
         for label in range(self.total_classes):
-            out_layer_values.append(utilities.calculate_sigmoid(self.out_weights[label], row[:-1]))
+            out_layer_values.append(utilities.calculate_sigmoid(self.weightsO[label], row[:-1]))
         return out_layer_values
 
     def __backpropagate(self, out_values, row):
@@ -33,7 +34,7 @@ class ZeroLayer:
 
     def __weight_updates(self, updates):
         for label in range(self.total_classes):
-            self.out_weights[label] = [self.out_weights[label][i] + updates[label][i] for i in range(len(self.out_weights[label]))]
+            self.weightsO[label] = [self.weightsO[label][i] + updates[label][i] for i in range(len(self.weightsO[label]))]
 
     def train_model(self):
         for row in self.train:
@@ -55,61 +56,59 @@ class OneLayer:
         self.hidden_nodes = hidden_nodes
         self.learn_rate = learn_rate
         self.total_classes = total_classes
-        self.out_weights = []
-        self.layer_one_weights = []
+        self.weightsI = []
+        self.weightsO = []
         # Create the weights for the hidden layer
-        for i in range(hidden_nodes):
+        for i in range(self.hidden_nodes):
             temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
-            self.layer_one_weights.append(temp)
+            self.weightsI.append(temp)
         # Create the weights for the output later
         for i in range(total_classes):
-            temp = [random.uniform(-1.0, 1.0) for i in range(hidden_nodes)]
-            self.out_weights.append(temp)
+            temp = [random.uniform(-1.0, 1.0) for i in range(hidden_nodes+1)]
+            self.weightsO.append(temp)
 
-    def __backpropagate(self, out_values, layer_one_values, row):
-        errors = [row[-1]-out_values[i] for i in range(len(out_values))]
-        out_deltas = utilities.outer_layer_backprop(errors, layer_one_values, self.learn_rate, self.total_classes)
-        layer_one = []
+    def __backpropagate(self, out_vals, hidden_vals, row):
+        deltaO = []
+        row = [1] + row[:-1]
+        for i in range(len(out_vals)):
+            error = row[-1] - out_vals[i]
+            deltaO.append(utilities.calculate_derivative(out_vals[i]) * error)
 
+        deltaI = []
         for node in range(self.hidden_nodes):
-            total = 0.0
-            for label in range(self.total_classes):
-                total += errors[label] * self.out_weights[label][node]
-            value = [total * utilities.calculate_derivative(self.layer_one_weights[node][i]) for i in range(len(self.layer_one_weights[node]))]
-            temp_row = [1.0] + row[:-1]
-            temp = [value[i] * temp_row[i] for i in range(len(temp_row))]
-            layer_one.append(temp)
-        return out_deltas, layer_one
+            error = 0.0
+            for out_node in range(self.total_classes):
+                error += deltaO[out_node]*self.weightsO[out_node][node]
+            deltaI.append(error * utilities.calculate_derivative(hidden_vals[node]))
+        hidden_vals = [1] + hidden_vals
+        for i in range(self.total_classes):
+            temp = [self.learn_rate*hidden_vals[j]*deltaO[i] for j in range(len(hidden_vals))]
+            self.weightsO[i] = [self.weightsO[i][j] + temp[j] for j in range(len(self.weightsO[i]))]
+
+        for i in range(self.hidden_nodes):
+            temp = [self.learn_rate*row[j]*deltaI[i] for j in range(len(row))]
+            self.weightsI[i] = [self.weightsI[i][j] + temp[j] for j in range(len(self.weightsI[i]))]
 
     def __forward_propagate(self, row, test=False):
-        layer_one_values = utilities.calculate_sigmoid_batch(self.layer_one_weights, row[:-1], self.hidden_nodes)
-        out_layer_values = utilities.calculate_sigmoid_batch(self.out_weights, layer_one_values, self.total_classes)
+        row = [1.0] + row[:-1]
+        hidden_outs = utilities.calculate_sigmoid_batch(self.weightsI, row, self.hidden_nodes)
+        output = utilities.calculate_sigmoid_batch(self.weightsO, hidden_outs, self.total_classes)
         if test:
-            return out_layer_values
-        return layer_one_values, out_layer_values
-
-    def __weight_updates(self, output, layer):
-        for label in range(self.total_classes):
-            temp = [self.out_weights[label][i] + output[label][i] for i in range(len(self.out_weights[label]))]
-            self.out_weights[label] = temp
-        for node in range(self.hidden_nodes):
-            temp = [self.layer_one_weights[node][i] + layer[node][i] for i in range(len(self.layer_one_weights[node]))]
-            self.layer_one_weights[node] = temp
+            return output
+        return hidden_outs, output
 
     def train_model(self):
         row = self.train[0]
-        # for row in self.train:
-        # Calculate each layer outputs
-        one_prop, out_prop = self.__forward_propagate(row)
-        print(one_prop, out_prop)
-        out_back, one_back = self.__backpropagate(out_prop, one_prop, row)
-        print(out_back, one_back)
-        self.__weight_updates(out_back, one_back)
-
-    # def test_model(self):
-    #     for row in self.test:
-    #         output = self.__forward_propagate(row, True)
-    #         #print(output, row[-1])
+        for i in range(100):
+            for row in range(len(self.train)):
+                # Calculate each layer outputs
+                input, output = self.__forward_propagate(self.train[row])
+                #print(one_prop, out_prop)
+                self.__backpropagate(output, input, self.train[row])
+    def test_model(self):
+        for row in self.test:
+            output = self.__forward_propagate(row, True)
+            print(output, row[-1])
 
 class TwoLayer:
     def __init__(self, train, test, hidden_layers, hidden_nodes, total_classes, learn_rate=0.001):
@@ -119,17 +118,17 @@ class TwoLayer:
         self.hidden_nodes = hidden_nodes
         self.learn_rate = learn_rate
         self.total_classes = total_classes
-        self.out_weights = []
-        self.layer_one_weights = []
+        self.weightsO = []
+        self.weightsI = []
         self.layer_two_weights = []
         # Create the weights for the 1st hidden layer
         for i in range(hidden_nodes[0]):
             temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
-            self.out_weights.append(temp)
+            self.weightsO.append(temp)
         # Create the weights for the 2nd hidden layer
         for i in range(hidden_nodes[1]):
             temp = [random.uniform(-1.0, 1.0) for i in range(hidden_nodes[0])]
-            self.layer_one_weights.append(temp)
+            self.weightsI.append(temp)
         # Create the weights for the output later
         for i in range(total_classes):
             temp = [random.uniform(-1.0, 1.0) for i in range(hidden_nodes[1])]
@@ -140,13 +139,13 @@ class TwoLayer:
         layer_one_values = []
         layer_two_values = []
         for node in range(self.hidden_nodes[0]):
-            out_layer_values.append(utilities.calculate_sigmoid(self.layer_one_weights[node], row[:-1]))
+            out_layer_values.append(utilities.calculate_sigmoid(self.weightsI[node], row[:-1]))
 
         for node in range(self.hidden_nodes[1]):
             out_layer_values.append(utilities.calculate_sigmoid(self.layer_two_weights[node], layer_one_values))
 
         for label in range(self.total_classes):
-            out_layer_values.append(utilities.calculate_sigmoid(self.out_weights[label], layer_two_values))
+            out_layer_values.append(utilities.calculate_sigmoid(self.weightsO[label], layer_two_values))
 
         return layer_one_values, layer_two_values, out_layer_values
 

@@ -1,4 +1,6 @@
 import math
+import numpy as np
+
 
 '''
 The package provides general utilities
@@ -9,7 +11,7 @@ def sigmoid(z):
     '''
     This method calculates sigmoid function
     '''
-    return (1.0 / (1.0 + math.exp(-z)))
+    return np.divide(1, a)
 
 
 def calculate_derivative(x):
@@ -17,7 +19,7 @@ def calculate_derivative(x):
     This method calculates the derivative of
     the sigmoid function
     '''
-    return x * (1 - x)
+    return x*(1-x)
 
 
 def calculate_sigmoid(weights, input):
@@ -26,7 +28,6 @@ def calculate_sigmoid(weights, input):
     and calculates the sigmoid
     '''
     values = [a*b for a, b in zip(weights[1:], input)]
-    print(sum(values) + weights[0])
     try:
         return sigmoid(sum(values) + weights[0])
     except:
