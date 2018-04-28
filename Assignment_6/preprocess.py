@@ -1,4 +1,4 @@
-import numpy as np
+#import numpy as np
 import itertools
 import random
 import utilities
@@ -68,13 +68,17 @@ def create_partitions(total_parts, data):
 
 def normalize_data(column):
     '''
-    This method normalizes the data of a column
+    This method normalizes the data of a column and replaces
+    any unknown instances
     '''
-    minimum = min(column)
-    maximum = max(column)
+    t_col = [float(value) for value in column if value != '?']
+    minimum = min(t_col)
+    maximum = max(t_col)
     for entry in range(len(column)):
+        if column[entry] == '?':
+            column[entry] = random.uniform(minimum, maximum)
         try:
-            column[entry] = (column[entry]-minimum)/(maximum-minimum)
+            column[entry] = (float(column[entry])-minimum)/(maximum-minimum)
         except ZeroDivisionError:
             column[entry] = 0.0
 
@@ -97,19 +101,19 @@ def digitize(column):
     it also generates a random number for the dataset
     if a ? is encountered
     '''
-    tmin, tmax = get_minmax(column)
-    for i, entry in enumerate(column):
-        if entry == '?':
-            column[i] = random.uniform(float(tmin), float(tmax))
-    column = [float(i) for i in column]
-    bins = np.linspace(float(tmin), float(tmax), TOTAL_BINS)
-    x = np.array(column)
-    inds = np.digitize(x, bins)
+    #tmin, tmax = get_minmax(column)
+    #for i, entry in enumerate(column):
+    #    if entry == '?':
+    #        column[i] = random.uniform(float(tmin), float(tmax))
+    ##column = [float(i) for i in column]
+    #bins = np.linspace(float(tmin), float(tmax), TOTAL_BINS)
+    #x = np.array(column)
+    #inds = np.digitize(x, bins)
     disc_list = []
-    for i in range(len(column)):
-        disc_list.append([])
-        disc_list[i] = [0 for i in range(TOTAL_BINS)]
-        disc_list[i][inds[i]-1] = 1
+    #for i in range(len(column)):
+    ##    disc_list.append([])
+    #    disc_list[i] = [0 for i in range(TOTAL_BINS)]
+    #    disc_list[i][inds[i]-1] = 1
     return disc_list
 
 

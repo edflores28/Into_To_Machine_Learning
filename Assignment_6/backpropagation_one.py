@@ -2,11 +2,18 @@ import random
 import utilities
 import copy
 
+MAX_EPOCH = 1000
+
+
 class Model:
     def __init__(self, train, test, hidden_nodes, outputs, learn_rate=0.001):
+        '''
+        Initialization
+        '''
         self.train = train
         self.test = test
         self.validation = []
+        # Pull 10% of the training set to use for early stopping
         for i in range(int(len(train)*.10)):
             self.validation.append(self.train.pop())
         self.hidden_nodes = hidden_nodes
@@ -14,84 +21,111 @@ class Model:
         self.outputs = outputs
         self.weightsI = []
         self.weightsO = []
-        # Create the weights for the hidden layer
+        # Create the weights for the hidden layer including the bias
         for i in range(self.hidden_nodes):
             temp = [random.uniform(-1.0, 1.0) for i in range(len(train[0]))]
             self.weightsI.append(temp)
-        # Create the weights for the output later
+        # Create the weights for the output later including the bias
         for i in range(outputs):
             temp = [random.uniform(-1.0, 1.0) for i in range(hidden_nodes+1)]
             self.weightsO.append(temp)
 
-    def __backpropagate(self, out_vals, hidden_vals, row):
+    def __backpropagate(self, row):
+        '''
+        This method propagates the error from the outputs back
+        to the inputs and performs weight updates
+        '''
         deltaO = []
-        row = [1] + row[:-1]
-        for i in range(len(out_vals)):
-            error = row[-1] - out_vals[i]
-            deltaO.append(utilities.calculate_derivative(out_vals[i]) * error)
-
         deltaI = []
+        # Add a 1 to the row and hidden values
+        # to account for the bias weight
+        t_row = [1] + row[:-1]
+        h_vals = [1] + self.h_outs
+        # Create a list for expected values
+        expected = utilities.create_expected(self.outputs, row)
+        # Iterate through the outputs and calculate the
+        # delta values
+        for i in range(self.outputs):
+            error = expected[i] - self.output[i]
+            deltaO.append(utilities.calculate_derivative(self.output[i]) * error)
+        # Iterate through the hidden nodes and calculate
+        # the delta values
         for node in range(self.hidden_nodes):
             error = 0.0
             for out_node in range(self.outputs):
                 error += deltaO[out_node]*self.weightsO[out_node][node]
-            deltaI.append(error * utilities.calculate_derivative(hidden_vals[node]))
-        hidden_vals = [1] + hidden_vals
+            deltaI.append(error * utilities.calculate_derivative(self.h_outs[node]))
+        # Iterate through the output nodes and
+        # update their weights
         for i in range(self.outputs):
-            temp = [self.learn_rate*hidden_vals[j]*deltaO[i] for j in range(len(hidden_vals))]
+            temp = [self.learn_rate*h_vals[j]*deltaO[i] for j in range(len(h_vals))]
             self.weightsO[i] = [self.weightsO[i][j] + temp[j] for j in range(len(self.weightsO[i]))]
-
+        # Iterate through the hidden nodes and
+        # update their weights
         for i in range(self.hidden_nodes):
-            temp = [self.learn_rate*row[j]*deltaI[i] for j in range(len(row))]
+            temp = [self.learn_rate*t_row[j]*deltaI[i] for j in range(len(t_row))]
             self.weightsI[i] = [self.weightsI[i][j] + temp[j] for j in range(len(self.weightsI[i]))]
 
-    def __forward_propagate(self, row, test=False):
-        row = [1.0] + row[:-1]
-        hidden_outs = utilities.calculate_sigmoid_batch(self.weightsI, row, self.hidden_nodes)
-        output = utilities.calculate_sigmoid_batch(self.weightsO, hidden_outs, self.outputs)
-        if test:
-            return output
-        return hidden_outs, output
+    def __forward_propagate(self, row):
+        '''
+        This method calculates all the node outputs for each
+        layer in the network
+        '''
+        # Append a 1 to the row to account for the bias
+        row = [1] + row[:-1]
+        self.h_outs = utilities.calculate_sigmoid_batch(self.weightsI, row, self.hidden_nodes)
+        self.output = utilities.calculate_sigmoid_batch(self.weightsO, self.h_outs, self.outputs)
 
     def train_model(self):
         prev_weightsO = []
         prev_weightsI = []
         prev_correct = 0
+        epoch = 0
+        # Train the network until broken
         while True:
             # Iterate through all the rows
             for row in range(len(self.train)):
                 # Calculate the outputs of each layer
-                input, output = self.__forward_propagate(self.train[row])
+                self.__forward_propagate(self.train[row])
                 # Backpropagate the errors
-                self.__backpropagate(output, input, self.train[row])
-            correct = self.test_model(True);
-            print(correct)
-            if correct < prev_correct:
+                self.__backpropagate(self.train[row])
+            # Determine the classification accuracy of the network
+            correct = self.test_model(True)
+            # If the correct value is less than previous
+            # correct value or the epoch is greater than
+            # the maximum epoch break the loop.
+            if correct < prev_correct or epoch > MAX_EPOCH:
+                # Restore the weights
                 self.weightsI = prev_weightsI
                 self.weightsO = prev_weightsO
+                print(prev_correct, correct)
                 break
-
+            # Save the weights, the correct value
+            # and increment the epoch
             prev_correct = correct
             prev_weightsI = copy.deepcopy(self.weightsI)
             prev_weightsO = copy.deepcopy(self.weightsO)
+            epoch += 1
 
     def __predict(self, row):
-        output = self.__forward_propagate(row, True)
-        if self.outputs == 1:
-            if output[0] > 0.5:
-                return 1
-            else:
-                return 0
-
+        '''
+        This method predicts the classification of the row
+        '''
+        self.__forward_propagate(row)
+        return utilities.network_predict(self.output)
 
     def test_model(self, validate=False):
+        '''
+        This method tests the network
+        '''
         correct = 0
         incorrect = 0
-        A = self.test
+        test = self.test
+        # Use the validation set if the flag is set
         if validate:
-            A = self.validation
-
-        for row in A:
+            test = self.validation
+        # Iterate over each row
+        for row in test:
             pred = self.__predict(row)
             if pred == row[-1]:
                 correct += 1

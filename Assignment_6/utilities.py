@@ -1,5 +1,7 @@
 import math
-import numpy as np
+import backpropagation_zero
+import backpropagation_one
+import backpropagation_two
 
 
 '''
@@ -11,7 +13,7 @@ def sigmoid(z):
     '''
     This method calculates sigmoid function
     '''
-    return np.divide(1, a)
+    return (1.0 / (1.0 + math.exp(-z)))
 
 
 def calculate_derivative(x):
@@ -19,7 +21,7 @@ def calculate_derivative(x):
     This method calculates the derivative of
     the sigmoid function
     '''
-    return x*(1-x)
+    return x * (1 - x)
 
 
 def calculate_sigmoid(weights, input):
@@ -28,15 +30,7 @@ def calculate_sigmoid(weights, input):
     and calculates the sigmoid
     '''
     values = [a*b for a, b in zip(weights[1:], input)]
-    try:
-        return sigmoid(sum(values) + weights[0])
-    except:
-        # print(input)
-        # print(weights,"\n")
-        # print(values)
-        # print(weights[0])
-        # print(sum(values))
-        return 1.0
+    return sigmoid(sum(values) + weights[0])
 
 
 def get_train_test_sets(partitions, key):
@@ -69,19 +63,31 @@ def calculate_sigmoid_batch(weights, inputs, total_nodes):
     return values
 
 
-def outer_layer_backprop(errors, layer, rate, total_nodes):
-    deltas = []
-    for node in range(total_nodes):
-        deltas.append([rate*errors[node]*layer[i] for i in range(len(layer))])
-    return deltas
+def network_predict(outputs):
+    # If there is 1 ouput node then its
+    # a 2 classification poblem
+    if len(outputs) == 1:
+        # Return 1 if the prediction is above
+        # 0.5
+        if outputs[0] > 0.5:
+            return 1
+        # Otherwise return 0
+        else:
+            return 0
+    # For multi classification problems return
+    # the index with the highest value
+    else:
+        return(outputs.index(max(outputs)))
 
-# def hidden_layer_backprop(errors, weights_a, weights_b, layer, rate, total_nodes):
-#     deltas = []
-#     for node in range(total_nodes):
-#         total = 0.0
-#         for i in range(len(errors)):
-#             total += errors[i] * weights_a[i][node]
-#         value = [total * calculate_derivative(weights_b[node][i]) for i in range(len(weights_b[node]))]
-#         temp_row = [1.0] + row[:-1]
-#         temp = [value[i] * temp_row[i] for i in range(len(temp_row))]
-#         deltas.append(temp)
+
+def create_expected(total_outputs, row):
+    expected = [0 for i in range(total_outputs)]
+    # For 2 classification problems just set the expected
+    # value
+    if total_outputs == 1:
+        expected[0] = row[-1]
+    # Otherwise make sure to set the correct index
+    # for the multi classification problem
+    else:
+        expected[row[-1]] = 1
+    return expected
