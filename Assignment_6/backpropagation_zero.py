@@ -3,6 +3,8 @@ import utilities
 import copy
 
 MAX_EPOCH = 1000
+MAX_PRINT = 5
+cprint = True
 
 
 class Model:
@@ -32,12 +34,18 @@ class Model:
         # Append a 1 to the row to account for the bias
         row = [1] + row[:-1]
         self.output = utilities.calculate_sigmoid_batch(self.weightsO, row, self.outputs)
+        if cprint:
+            print("Output later outputs")
+            print(self.output[:MAX_PRINT], "\n")
+            print("Forward propagation finished\n")
+
 
     def __backpropagate(self, row):
         '''
         This method propagates the error from the outputs back
         to the inputs and performs weight updates
         '''
+        global cprint
         deltaO = []
         # Add a 1 to the row and hidden values
         # to account for the bias weight
@@ -54,8 +62,19 @@ class Model:
         for i in range(self.outputs):
             temp = [self.learn_rate*t_row[j]*deltaO[i] for j in range(len(t_row))]
             self.weightsO[i] = [self.weightsO[i][j] + temp[j] for j in range(len(self.weightsO[i]))]
+        if cprint:
+            print("Output layer deltas")
+            print(deltaO[:MAX_PRINT], "\n")
+            print("Output layer new weights")
+            print(self.weightsO[:MAX_PRINT], "\n")
+            print("Forward propagation finished\n")
 
     def train_model(self):
+        '''
+        This method calculates all the node outputs for each
+        layer in the network
+        '''
+        global cprint
         prev_weightsO = []
         prev_correct = 0
         epoch = 0
@@ -67,6 +86,8 @@ class Model:
                 self.__forward_propagate(self.train[row])
                 # Backpropagate the errors
                 self.__backpropagate(self.train[row])
+                if row == 5:
+                    cprint = False
             # Determine the classification accuracy of the network
             correct = self.test_model(True)
             # If the correct value is less than previous
@@ -75,7 +96,9 @@ class Model:
             if correct < prev_correct or epoch > MAX_EPOCH:
                 # Restore the weights
                 self.weightsO = prev_weightsO
-                print(prev_correct, correct)
+                print("Finished training")
+                print("Final accuracy with validation set:", correct)
+                print("Total epochs:", epoch, "\n")
                 break
             # Save the weights, the correct value
             # and increment the epoch

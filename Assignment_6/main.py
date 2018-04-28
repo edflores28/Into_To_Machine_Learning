@@ -1,10 +1,7 @@
 import preprocess
 import random
-import backpropagation_zero
-import backpropagation_one
-import backpropagation_two
 import utilities
-import copy
+import argparse
 
 TOTAL_PARTITIONS = 5
 
@@ -22,15 +19,11 @@ def do_house_votes():
     preprocess.swap_columns(0, len(dataset[0])-1, dataset, False)
     # Randomize the dataset
     random.shuffle(dataset)
-    # print("Creating a total of", TOTAL_PARTITIONS, "partitions")
-    # print("Using the logistic regression model")
-    # input("Press Enter to continue...")
-    # Create the partitions
+    # Create partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
-    train, test = utilities.get_train_test_sets(parts, 0)
-    prop = backpropagation_one.Model(train, test, 15, 1)
-    prop.train_model()
-    prop.test_model()
+    print("Partitions created!")
+    # Execute the test_list
+    utilities.main_test(parts, 16, [19, 7], 1)
 
 
 def do_breast_cancer():
@@ -53,15 +46,11 @@ def do_breast_cancer():
     preprocess.convert_column(dataset, '4', '2')
     # Randomly shuffle the data set
     random.shuffle(dataset)
-
+    # Create partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
-    train, test = utilities.get_train_test_sets(parts, 0)
-    # prop = backpropagation_one.Model(train, test, 10, 1)
-    # prop.train_model()
-    # prop.test_model()
-    prop = backpropagation_zero.Model(train, test, 1)
-    prop.train_model()
-    prop.test_model()
+    print("Partitions created!")
+    # Execute the test_list
+    utilities.main_test(parts, 16, [19, 7], 1)
 
 
 def do_iris():
@@ -83,23 +72,92 @@ def do_iris():
     dataset = utilities.transpose(dataset)
     # Shuffle the data set
     random.shuffle(dataset)
+    # Create partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
-    zero_error = 0.0
-    one_error = 0.0
-    two_error = 0.0
-    for key in parts.keys():
-        train, test = utilities.get_train_test_sets(parts, key)
-        model = backpropagation_zero.Model(copy.deepcopy(train), copy.deepcopy(test), 3)
-        model.train_model()
-        zero_error += model.test_model()
-        model = backpropagation_one.Model(copy.deepcopy(train), copy.deepcopy(test), 19, 3)
-        model.train_model()
-        one_error += model.test_model()
-        model = backpropagation_two.Model(copy.deepcopy(train), copy.deepcopy(test), [6, 10], 3)
-        model.train_model()
-        two_error += model.test_model()
+    print("Partitions created!")
+    # Execute the test_list
+    utilities.main_test(parts, 16, [19, 7], 3)
 
-    print(zero_error/5, one_error/5, two_error/5)
-#do_breast_cancer()
-#do_house_votes()
-do_iris()
+
+def do_glass():
+    '''
+    This method executes the glass dataset test.
+    '''
+    print("The glass dataset will be processed and tested.\n")
+    # Read the data for the specified file
+    dataset = preprocess.read_file("./glass.data")
+    # Obtain column representation
+    dataset = utilities.transpose(dataset)
+    # Delete index 0 since this is the ID field and is not needed
+    del dataset[0]
+    # Normalize the data
+    for column in dataset[:-1]:
+        preprocess.normalize_data(column)
+    # Obtain row representation
+    dataset = utilities.transpose(dataset)
+    # Create a dictionary for the class labels
+    glass_dict = {'1': 0, '2': 1,
+                  '3': 2, '5': 3,
+                  '6': 4, '7': 5}
+    # Update the class labels according to the dictionary
+    preprocess.build_multiclass(dataset, glass_dict)
+    # Shuffle the data set
+    random.shuffle(dataset)
+    # Create partitions
+    parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
+    print("Partitions created!")
+    # Execute the test_list
+    utilities.main_test(parts, 30, [23, 11], 6)
+
+
+def do_soy():
+    '''
+    This method executes the soybean dataset test.
+    '''
+    print("The soybean dataset will be processed and tested.\n")
+    # Read the data for the specified file
+    dataset = preprocess.read_file("./soybean-small.data")
+    # Create a dictionary for the class labels
+    soy_dict = {'D1': 0, 'D2': 1,
+                'D3': 2, 'D4': 3}
+    # Convert the columns into their discretized versions.
+    preprocess.build_multiclass(dataset, soy_dict)
+    # Obtain column representation
+    dataset = utilities.transpose(dataset)
+    # Normalize the data
+    for column in dataset[:-1]:
+        preprocess.normalize_data(column)
+    # Obtain the row representation
+    dataset = utilities.transpose(dataset)
+    # Randomize the dataset
+    random.shuffle(dataset)
+    # Create partitions
+    parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
+    print("Partitions created!")
+    # Execute the test_list
+    utilities.main_test(parts, 11, [22, 11], 4)
+
+'''
+MAIN APPLICATION
+'''
+# Create a parser for the command line arguments
+parser = argparse.ArgumentParser(description="Intro to ML Project 6")
+parser.add_argument('-v', action="store_true", default=False, help='Execute house votes test')
+parser.add_argument('-s', action="store_true", default=False, help='Execute soybean test')
+parser.add_argument('-b', action="store_true", default=False, help='Execute breast cancer test')
+parser.add_argument('-i', action="store_true", default=False, help='Execute iris test')
+parser.add_argument('-g', action="store_true", default=False, help='Execute glass test')
+
+results = parser.parse_args()
+
+# Perform the tests based on the input
+if results.v:
+    do_house_votes()
+if results.s:
+    do_soy()
+if results.b:
+    do_breast_cancer()
+if results.i:
+    do_iris()
+if results.g:
+    do_glass()

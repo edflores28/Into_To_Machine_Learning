@@ -1,3 +1,4 @@
+import copy
 import math
 import backpropagation_zero
 import backpropagation_one
@@ -57,6 +58,9 @@ def transpose(data_list):
 
 
 def calculate_sigmoid_batch(weights, inputs, total_nodes):
+    '''
+    This method calculates the sigmoid for all nodes
+    '''
     values = []
     for node in range(total_nodes):
         values.append(calculate_sigmoid(weights[node], inputs))
@@ -64,6 +68,11 @@ def calculate_sigmoid_batch(weights, inputs, total_nodes):
 
 
 def network_predict(outputs):
+    '''
+    This method returns a prediction for both
+    2 classification and multi classification
+    problems
+    '''
     # If there is 1 ouput node then its
     # a 2 classification poblem
     if len(outputs) == 1:
@@ -81,6 +90,11 @@ def network_predict(outputs):
 
 
 def create_expected(total_outputs, row):
+    '''
+    This method creates a new expected outlist
+    and sets the corresponding index of the
+    classification
+    '''
     expected = [0 for i in range(total_outputs)]
     # For 2 classification problems just set the expected
     # value
@@ -91,3 +105,66 @@ def create_expected(total_outputs, row):
     else:
         expected[row[-1]] = 1
     return expected
+
+
+def zero_backprop_test(partitions, outputs):
+    '''
+    This method iterates through the partitions
+    and performs the backpropagation algorithm
+    with zero hidden layers
+    '''
+    error = 0.0
+    for key in partitions.keys():
+        train, test = get_train_test_sets(partitions, key)
+        model = backpropagation_zero.Model(copy.deepcopy(train), copy.deepcopy(test), outputs)
+        model.train_model()
+        error += model.test_model()
+    return error
+
+
+def one_backprop_test(partitions, hidden_nodes, outputs):
+    '''
+    This method iterates through the partitions
+    and performs the backpropagation algorithm
+    with one hidden layers
+    '''
+    error = 0.0
+    for key in partitions.keys():
+        train, test = get_train_test_sets(partitions, key)
+        model = backpropagation_one.Model(copy.deepcopy(train), copy.deepcopy(test), hidden_nodes, outputs)
+        model.train_model()
+        error += model.test_model()
+    return error
+
+
+def two_backprop_test(partitions, hidden_nodes, outputs):
+    '''
+    This method iterates through the partitions
+    and performs the backpropagation algorithm
+    with two hidden layers
+    '''
+    error = 0.0
+    for key in partitions.keys():
+        train, test = get_train_test_sets(partitions, key)
+        model = backpropagation_two.Model(copy.deepcopy(train), copy.deepcopy(test), hidden_nodes, outputs)
+        model.train_model()
+        error += model.test_model()
+    return error
+
+
+def main_test(partitions, h1_nodes, h2_nodes, outputs):
+    '''
+    This method performs the backpropagation testing
+    '''
+    print("Using the backpropagation with zero hidden layers model")
+    input("Press Enter to continue...")
+    zero_error = zero_backprop_test(partitions, 1)
+    print("\nTotal accuracy:", zero_error/5, "\n")
+    print("Using the backpropagation with one hidden layers model")
+    input("Press Enter to continue...")
+    one_error = one_backprop_test(partitions, h1_nodes, outputs)
+    print("\nTotal accuracy:", one_error/5, "\n")
+    print("Using the backpropagation with two hidden layers model")
+    input("Press Enter to continue...")
+    two_error = two_backprop_test(partitions, h2_nodes, outputs)
+    print("\nTotal accuracy:", two_error/5, "\n")
