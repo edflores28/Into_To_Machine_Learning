@@ -2,7 +2,7 @@ import random
 import utilities
 import copy
 
-MAX_EPOCH = 1000
+MAX_EPOCH = 250
 MAX_PRINT = 5
 cprint = True
 
@@ -39,7 +39,6 @@ class Model:
             print(self.output[:MAX_PRINT], "\n")
             print("Forward propagation finished\n")
 
-
     def __backpropagate(self, row):
         '''
         This method propagates the error from the outputs back
@@ -47,7 +46,7 @@ class Model:
         '''
         global cprint
         deltaO = []
-        # Add a 1 to the row and hidden values
+        # Add a 1 to the row
         # to account for the bias weight
         t_row = [1] + row[:-1]
         # Create a list for expected values
@@ -67,7 +66,7 @@ class Model:
             print(deltaO[:MAX_PRINT], "\n")
             print("Output layer new weights")
             print(self.weightsO[:MAX_PRINT], "\n")
-            print("Forward propagation finished\n")
+            print("Back propagation finished\n")
 
     def train_model(self):
         '''

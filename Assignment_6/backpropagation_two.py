@@ -2,7 +2,7 @@ import random
 import utilities
 import copy
 
-MAX_EPOCH = 1000
+MAX_EPOCH = 250
 MAX_PRINT = 5
 cprint = True
 
@@ -100,7 +100,7 @@ class Model:
             print(deltaI[:MAX_PRINT], "\n")
             print("Input layer new weights")
             print(self.weightsI[:MAX_PRINT], "\n")
-            print("Forward propagation finished\n")
+            print("Back propagation finished\n")
 
     def __forward_propagate(self, row):
         '''

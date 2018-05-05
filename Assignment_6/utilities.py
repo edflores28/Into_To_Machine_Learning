@@ -3,7 +3,7 @@ import math
 import backpropagation_zero
 import backpropagation_one
 import backpropagation_two
-
+import rbf_network
 
 '''
 The package provides general utilities
@@ -23,6 +23,21 @@ def calculate_derivative(x):
     the sigmoid function
     '''
     return x * (1 - x)
+
+
+def distance(x, y):
+    '''
+    This method calculates the euclidean distance between
+    x and y points
+    '''
+    return math.sqrt(sum([(a - b) ** 2 for a, b in zip(x, y)]))
+
+
+def rbf(x, beta):
+    '''
+    This method calculates the radial basis function
+    '''
+    return math.exp(-beta*x)
 
 
 def calculate_sigmoid(weights, input):
@@ -86,7 +101,9 @@ def network_predict(outputs):
     # For multi classification problems return
     # the index with the highest value
     else:
-        return(outputs.index(max(outputs)))
+        total = sum(outputs)
+        softmax = [outputs[i] / (1 + total) for i in range(len(outputs))]
+        return(softmax.index(max(softmax)))
 
 
 def create_expected(total_outputs, row):
@@ -152,13 +169,27 @@ def two_backprop_test(partitions, hidden_nodes, outputs):
     return error
 
 
-def main_test(partitions, h1_nodes, h2_nodes, outputs):
+def rbf_test(partitions, outputs):
+    '''
+    This method iterates through the partitions
+    and performs the radial basis function network
+    '''
+    error = 0.0
+    for key in partitions.keys():
+        train, test = get_train_test_sets(partitions, key)
+        model = rbf_network.Model(copy.deepcopy(train), copy.deepcopy(test), outputs)
+        model.train_model()
+        error += model.test_model()
+    return error
+
+
+def main_test(partitions, h1_nodes, h2_nodes, outputs, rbf_outputs):
     '''
     This method performs the backpropagation testing
     '''
     print("Using the backpropagation with zero hidden layers model")
     input("Press Enter to continue...")
-    zero_error = zero_backprop_test(partitions, 1)
+    zero_error = zero_backprop_test(partitions, outputs)
     print("\nTotal accuracy:", zero_error/5, "\n")
     print("Using the backpropagation with one hidden layers model")
     input("Press Enter to continue...")
@@ -168,3 +199,7 @@ def main_test(partitions, h1_nodes, h2_nodes, outputs):
     input("Press Enter to continue...")
     two_error = two_backprop_test(partitions, h2_nodes, outputs)
     print("\nTotal accuracy:", two_error/5, "\n")
+    print("Using the radial basis network model")
+    input("Press Enter to continue...")
+    rbf_error = rbf_test(partitions, rbf_outputs)
+    print("\nTotal accuracy:", rbf_error/5, "\n")

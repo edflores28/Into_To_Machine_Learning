@@ -2,6 +2,7 @@ import preprocess
 import random
 import utilities
 import argparse
+import rbf_network
 
 TOTAL_PARTITIONS = 5
 
@@ -22,8 +23,9 @@ def do_house_votes():
     # Create partitions
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Partitions created!")
+    train, test = utilities.get_train_test_sets(parts, 0)
     # Execute the test_list
-    utilities.main_test(parts, 16, [19, 7], 1)
+    utilities.main_test(parts, 16, [19, 7], 1, 2)
 
 
 def do_breast_cancer():
@@ -50,7 +52,7 @@ def do_breast_cancer():
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Partitions created!")
     # Execute the test_list
-    utilities.main_test(parts, 16, [19, 7], 1)
+    utilities.main_test(parts, 16, [19, 7], 1, 2)
 
 
 def do_iris():
@@ -76,7 +78,7 @@ def do_iris():
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Partitions created!")
     # Execute the test_list
-    utilities.main_test(parts, 16, [19, 7], 3)
+    utilities.main_test(parts, 16, [19, 7], 3, 3)
 
 
 def do_glass():
@@ -107,7 +109,7 @@ def do_glass():
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Partitions created!")
     # Execute the test_list
-    utilities.main_test(parts, 30, [23, 11], 6)
+    utilities.main_test(parts, 30, [23, 11], 6, 6)
 
 
 def do_soy():
@@ -135,7 +137,7 @@ def do_soy():
     parts = preprocess.create_partitions(TOTAL_PARTITIONS, dataset)
     print("Partitions created!")
     # Execute the test_list
-    utilities.main_test(parts, 11, [22, 11], 4)
+    utilities.main_test(parts, 11, [22, 11], 4, 4)
 
 '''
 MAIN APPLICATION
