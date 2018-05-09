@@ -2,7 +2,7 @@ import environment
 import agent
 import utilities
 
-track = environment.Track("./R-track.txt")
+track = environment.Track("./L-track.txt")
 
 player = agent.Q_Learn(track)
 

@@ -30,10 +30,22 @@ class Q_Table:
                     self.Q[key] = copy.deepcopy(q_v_tmp)
 
     def get_q_value(self, state, action):
-        return self.Q[state][action]
+        try:
+            return self.Q[state][action]
+        except:
+            print("EXCEPT:", state, action)
 
     def get_q_values(self, state):
         return self.Q[state]
 
     def set_q_value(self, state, action, value):
         self.Q[state][action] = value
+
+    def print(self):
+        for key in self.Q.keys():
+            temp = max(self.Q[key].values())
+            if temp > 0.0:
+                print(key, self.Q[key])
+            temp = min(self.Q[key].values())
+            if temp < 0.0:
+                print(key, self.Q[key])
