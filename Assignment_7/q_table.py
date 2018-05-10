@@ -41,6 +41,14 @@ class Q_Table:
     def set_q_value(self, state, action, value):
         self.Q[state][action] = value
 
+    def get_min_q(self, state, iskey):
+        actions = self.get_q_values(state)
+        min_key = min(actions, key=actions.get)
+        if iskey:
+            return min_key
+        else:
+            return actions[min_key]
+
     def print(self):
         for key in self.Q.keys():
             temp = max(self.Q[key].values())

@@ -25,3 +25,11 @@ def get_min_velocity():
 
 def get_max_velocity():
     return MAX_VELOCITY
+
+
+def transpose(data_list):
+    '''
+    Transpose the datalist from rows to columns or
+    columns to rows
+    '''
+    return list(map(list, zip(*data_list)))

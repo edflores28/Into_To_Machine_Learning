@@ -13,14 +13,6 @@ class Q_Learn:
         self.action = None
         self.track = track
 
-    def __get_max_q(self, state, iskey):
-        actions = self.q_table.get_q_values(state)
-        max_key = max(actions, key=actions.get)
-        if iskey:
-            return max_key
-        else:
-            return actions[max_key]
-
     def __get_action(self):
         # If the random generated number is less than
         # the epsilon value pick an action at random
@@ -31,7 +23,7 @@ class Q_Learn:
         else:
             #print("Finding best", self.track.get_position(), self.track.get_velocity())
             key = self.track.get_position() + self.track.get_velocity()
-            self.action = self.__get_max_q(key, True)
+            self.action = self.q_table.get_min_q(key, True)
             #print("action:", self.action)
         # If the random number is less than 0.2 then
         # the action (acceleration) is not applied
@@ -40,20 +32,21 @@ class Q_Learn:
             #print("RANDOM", self.action)
 
     def __calculate(self):
+        print("act", self.action)
         current_key = self.track.get_position() + self.track.get_velocity()
         #print("C", current_key)
         current_q = self.q_table.get_q_value(current_key, self.action)
         new_key = tuple(map(lambda x, y: x+y, current_key, self.action+(0, 0)))
         #print("N",new_key)
         next_reward = self.track.get_reward((new_key[0], new_key[1]))
-        next_max_q = self.__get_max_q(new_key, False)
+        next_max_q = self.q_table.get_min_q(new_key, False)
         new_q = current_q + self.eta*(next_reward + self.gamma*next_max_q - current_q)
         self.q_table.set_q_value(current_key, self.action, new_q)
         self.track.update_velocity(self.action)
         self.track.update_position()
-
+        self.track.determine_state()
     def learn(self):
-        for i in range(2000000):
+        for i in range(5):
             self.__get_action()
             self.__calculate()
 
