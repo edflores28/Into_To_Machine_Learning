@@ -73,7 +73,7 @@ def get_reward_value(pattern):
     '''
     if pattern == "F":
         return 0
-    return 1
+    return -1
 
 
 def search_and_add(search_list, value, add_list, idx):
@@ -81,6 +81,7 @@ def search_and_add(search_list, value, add_list, idx):
         for entry in range(len(search_list)):
             if search_list[entry] == value:
                 add_list.append((entry, idx))
+
 
 def transpose(data_list):
     '''

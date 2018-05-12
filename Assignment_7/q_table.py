@@ -56,18 +56,18 @@ class Q_Table:
         '''
         self.Q[state][action] = value
 
-    def get_min_q(self, state, iskey):
+    def get_max_q(self, state, iskey):
         '''
         This method find the action with the
         minimum Q value. Based on iskey
         the action or the q value is returned
         '''
         actions = self.get_q_values(state)
-        min_key = min(actions, key=actions.get)
+        key = max(actions, key=actions.get)
         if iskey:
-            return min_key
+            return key
         else:
-            return actions[min_key]
+            return actions[key]
 
     def print(self):
         '''
