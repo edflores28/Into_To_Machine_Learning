@@ -4,9 +4,15 @@ import utilities
 
 class Q_Table:
     def __init__(self, dimension):
+        '''
+        Initialization
+        '''
         self.Q = {}
+        # Obtain the action list
         actions = utilities.get_actions()
+        # Default value list
         values = [0.0 for i in range(len(actions))]
+        # Create a dictionary
         q_v_tmp = dict(zip(actions, values))
         # Obtain the min and max velocity
         min_vel = utilities.get_min_velocity()
@@ -30,18 +36,32 @@ class Q_Table:
                     self.Q[key] = copy.deepcopy(q_v_tmp)
 
     def get_q_value(self, state, action):
-        try:
-            return self.Q[state][action]
-        except:
-            print("EXCEPT:", state, action)
+        '''
+        This method returns the Q value
+        for the given state and action
+        '''
+        return self.Q[state][action]
 
     def get_q_values(self, state):
+        '''
+        This method returns all the q values
+        based on the state
+        '''
         return self.Q[state]
 
     def set_q_value(self, state, action, value):
+        '''
+        This method set the Q value for the
+        given state action and value
+        '''
         self.Q[state][action] = value
 
     def get_min_q(self, state, iskey):
+        '''
+        This method find the action with the
+        minimum Q value. Based on iskey
+        the action or the q value is returned
+        '''
         actions = self.get_q_values(state)
         min_key = min(actions, key=actions.get)
         if iskey:
@@ -50,10 +70,10 @@ class Q_Table:
             return actions[min_key]
 
     def print(self):
+        '''
+        Utility funtion that prints out the
+        Q table entries
+        '''
         for key in self.Q.keys():
-            temp = max(self.Q[key].values())
-            if temp > 0.0:
-                print(key, self.Q[key])
-            temp = min(self.Q[key].values())
-            if temp < 0.0:
+            if max(self.Q[key].values()) > 0.0 or min(self.Q[key].values()) < 0.0:
                 print(key, self.Q[key])
