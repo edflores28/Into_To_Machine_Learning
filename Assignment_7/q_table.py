@@ -69,6 +69,18 @@ class Q_Table:
         else:
             return actions[key]
 
+    def get_all_keys(self):
+        '''
+        This method returns the keys of the Q table
+        '''
+        return self.Q.keys()
+
+    def get_table(self):
+        '''
+        This method returns the entire Q table
+        '''
+        return self.Q
+
     def print(self):
         '''
         Utility funtion that prints out the

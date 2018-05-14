@@ -5,7 +5,7 @@ import utilities
 
 
 class Track:
-    def __init__(self, filename, is_start):
+    def __init__(self, filename, is_start, is_ltrack):
         '''
         Initialization
         '''
@@ -16,7 +16,7 @@ class Track:
         # Set the width of the envronemnt
         self.x = int(self.states[0][1])
         # Determines which crashing policy to use
-        self.is_start = False #TODO is_start
+        self.is_start = is_start
         # Remove the first entry since it contains L,W
         del self.states[0]
         # Create a list of starting points
@@ -38,35 +38,45 @@ class Track:
             for col in range(len(self.rewards[row])):
                 self.rewards[row][col] = utilities.get_reward_value(self.rewards[row][col])
         # Set initial parameters
+        self.is_ltrack = is_ltrack
         self.car_start = random.sample(self.start, 1)[0]
         self.car_pos = self.car_start
-        self.prev_pos = "S"
         self.car_state = "S"
         self.car_velocity = (0, 0)
-        self.finish_x = [32, 33, 34, 35]
-        self.finish_y = 1
+        l_finish_x = [32, 33, 34, 35]
+        l_finish_y = 1
+        r_finish_x = [24, 25, 26, 27, 28]
+        r_finish_y = 26
+        self.finish_x = l_finish_x if self.is_ltrack else r_finish_x
+        self.finish_y = l_finish_y if self.is_ltrack else r_finish_y
+        self.is_print = True
 
-    def __get_bounded_value(self, value, max_val):
+    def set_is_start(self, start):
         '''
-        This method limits the given value to 0
-        and the given max value
+        This method sets the starting value
         '''
-        if value > max_val:
-            return max_val - 1
-        if value < 0:
-            return 0
-        return value
+        self.is_start = start
 
     def __is_finish(self):
         '''
         This method determines if the finish line
         was crossed
         '''
-        # TODO R track may be different
-        if self.inter_pos[0] in self.finish_x and self.inter_pos[1] <= self.finish_y:
-            return True
+        is_x = self.inter_pos[0] in self.finish_x
+        if self.is_ltrack:
+            if is_x and self.inter_pos[1] <= self.finish_y:
+                if self.is_print:
+                    print("Found the finish line\n")
+                return True
+            else:
+                return False
         else:
-            return False
+            if is_x and self.inter_pos[1] >= self.finish_y:
+                if self.is_print:
+                    print("Found the finish line\n")
+                return True
+            else:
+                return False
 
     def __determine_diagnol_crash(self):
         '''
@@ -82,6 +92,8 @@ class Track:
         diagnol_list.append(self.states[self.car_pos[1]-1][self.car_pos[0]-1])
         # Check to see if there is a wall and update the position
         if "#" in diagnol_list:
+            if self.is_print:
+                print("Car crashed in diagnol position\n")
             self.car_pos = self.prev_pos
 
     def __negative_lookahead(self, lookahead, new_pos, is_y):
@@ -168,6 +180,9 @@ class Track:
         # Make sure that the bew velocity is within bounds
         car_vel[0] = utilities.regulate_velocity(car_vel[0])
         car_vel[1] = utilities.regulate_velocity(car_vel[1])
+        if self.is_print:
+            print("Updating the velocity")
+            print("Old", self.car_velocity, "New", self.car_velocity, "\n")
         # Set the velocity
         self.car_velocity = tuple(car_vel)
 
@@ -179,11 +194,11 @@ class Track:
         new_pos = list(map(lambda x, y: x+y, self.car_pos, self.car_velocity))
         # Make sure the new position is within the environment
         # limits
-        new_pos[0] = self.__get_bounded_value(new_pos[0], self.x)
-        new_pos[1] = self.__get_bounded_value(new_pos[1], self.y)
+        new_pos[0] = utilities.limit_value(new_pos[0], self.x)
+        new_pos[1] = utilities.limit_value(new_pos[1], self.y)
         # Determine the new x and y positions
-        x, xup = self.__do_xy_positions(new_pos[0], False)
-        y, yup = self.__do_xy_positions(new_pos[1], True)
+        x, xup = self.__do_xy_positions(new_pos[0][0], False)
+        y, yup = self.__do_xy_positions(new_pos[1][0], True)
         # Save the intermediate positions and updates
         self.inter_pos = (x, y)
         self.inter_updates = (xup, yup)
@@ -198,6 +213,8 @@ class Track:
         state = self.states[self.inter_pos[1]][self.inter_pos[0]]
         # Check to see if the car crashed
         if state == "#":
+            if self.is_print:
+                print("The car has crashed resetting based on policy\n")
             # If is start is true then the car will start
             # at the starting line.
             if self.is_start:
@@ -219,7 +236,9 @@ class Track:
         # that the wall is diagnol
         if self.car_state == "#":
             self.__determine_diagnol_crash()
-        #print("Pos:",self.car_pos,"Vel",self.car_velocity, "")
+        if self.is_print:
+            print("Updating the environment")
+            print("Previous position", self.prev_pos, "New position", self.car_pos, "\n")
 
     def get_state(self):
         '''
@@ -261,6 +280,33 @@ class Track:
             return(self.rewards[self.inter_pos[1]][self.inter_pos[0]])
 
     def episode_reset(self):
-        self.car_pos = random.sample(self.start, 1)[0]
-        self.car_start = self.car_pos
+        '''
+        This method resets the environment
+        '''
+        if self.is_print:
+            print("Resetting the track\n")
+        # self.car_pos = random.sample(self.start, 1)[0]
+        # self.car_start = self.car_pos
+        self.car_pos = self.car_start
         self.car_velocity = (0, 0)
+
+    def get_rewards(self):
+        '''
+        This method retunrs the reward list
+        '''
+        return self.rewards
+
+    def get_finish_positions(self):
+        '''
+        This method retuns the finish positions
+        '''
+        return self.finish
+
+    def get_start_positions(self):
+        '''
+        This method retuns the start positions
+        '''
+        return self.start
+
+    def set_print(self, is_print):
+        self.is_print = is_print

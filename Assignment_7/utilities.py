@@ -83,6 +83,18 @@ def search_and_add(search_list, value, add_list, idx):
                 add_list.append((entry, idx))
 
 
+def limit_value(value, max_val):
+    '''
+    This method limits the given value to 0
+    and the given max value
+    '''
+    if value >= max_val:
+        return max_val - 1, True
+    if value < 0:
+        return 0, True
+    return value, False
+
+
 def transpose(data_list):
     '''
     Transpose the datalist from rows to columns or
